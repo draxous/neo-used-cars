@@ -1,21 +1,24 @@
-import TopBar from "@/components/TopBar";
-import Header from "@/components/Header";
+import Layout from "@/components/Layout";
 import HeroSection from "@/components/HeroSection";
 import SearchFilters from "@/components/SearchFilters";
 import MakersSidebar from "@/components/MakersSidebar";
 import NewArrivals from "@/components/NewArrivals";
 import WelcomeSection from "@/components/WelcomeSection";
 import Testimonials from "@/components/Testimonials";
-import Footer from "@/components/Footer";
+import InquiryBox from "@/components/InquiryBox";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <TopBar />
-      <Header />
+    <Layout>
       <HeroSection />
+
+      {/* Mobile counterpart to the hero inquiry box */}
+      <section className="lg:hidden bg-secondary/50 py-8 px-4">
+        <InquiryBox className="mx-auto" />
+      </section>
+
       <SearchFilters />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-[280px_1fr] gap-8">
           <div className="hidden lg:block">
@@ -28,9 +31,7 @@ const Index = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </Layout>
   );
 };
 

@@ -1,21 +1,17 @@
+import { Link } from "react-router-dom";
 import { Mail, Phone, MapPin, Facebook, Instagram, Youtube } from "lucide-react";
+import { collections, getMakes } from "@/data/cars";
+import { siteConfig } from "@/config/site";
+import Logo from "./Logo";
 
 const Footer = () => {
   return (
     <footer className="hero-gradient text-primary-foreground mt-12" id="contact">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Company Info */}
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-primary-foreground/10 rounded-lg flex items-center justify-center">
-                <span className="font-display font-bold text-lg">N</span>
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-xl">Neo</h3>
-                <p className="text-xs text-primary-foreground/70">The Japanese Used Car Exporter</p>
-              </div>
-            </div>
+          <div className="sm:col-span-2">
+            <Logo tone="onDark" size="md" className="mb-4" />
             <p className="text-primary-foreground/80 text-sm leading-relaxed mb-4">
               Neo Trading Co., Ltd specializes in exporting high-quality Japanese used vehicles 
               to customers worldwide. With years of experience and a commitment to excellence, 
@@ -38,11 +34,46 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/80">
-              <li><a href="#" className="hover:text-accent transition-colors">Stock List</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">How to Buy</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">FAQ</a></li>
-              <li><a href="#" className="hover:text-accent transition-colors">Terms & Conditions</a></li>
+              <li><Link to="/stock-cars" className="hover:text-accent transition-colors">Stock List</Link></li>
+              <li><Link to="/auctions" className="hover:text-accent transition-colors">Auctions</Link></li>
+              <li><Link to="/about-us" className="hover:text-accent transition-colors">About Us</Link></li>
+              <li><Link to="/resources" className="hover:text-accent transition-colors">Resources</Link></li>
+              <li><Link to="/faq" className="hover:text-accent transition-colors">FAQ</Link></li>
+              <li><Link to="/inquiry" className="hover:text-accent transition-colors">Contact Us</Link></li>
+            </ul>
+          </div>
+
+          {/* Collections */}
+          <div>
+            <h4 className="font-display font-semibold mb-4">Collections</h4>
+            <ul className="space-y-2 text-sm text-primary-foreground/80">
+              {collections.map((collection) => (
+                <li key={collection.slug}>
+                  <Link
+                    to={`/stock-cars/collection/${collection.slug}`}
+                    className="hover:text-accent transition-colors"
+                  >
+                    {collection.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Popular Makes */}
+          <div>
+            <h4 className="font-display font-semibold mb-4">Popular Makes</h4>
+            <ul className="space-y-2 text-sm text-primary-foreground/80">
+              {getMakes().slice(0, 6).map((make) => (
+                <li key={make.slug}>
+                  <Link
+                    to={`/stock-cars/${make.slug}`}
+                    className="hover:text-accent transition-colors"
+                  >
+                    {make.name}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
@@ -52,22 +83,26 @@ const Footer = () => {
             <ul className="space-y-3 text-sm text-primary-foreground/80">
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                <span>Neo LLC, Higashikomatsugawa 1-12-1, Edogawa, Tokyo</span>
+                <span>{siteConfig.address}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 flex-shrink-0" />
-                <span>+81-80-9718-5080</span>
+                <a href={`tel:+${siteConfig.phoneRaw}`} className="hover:text-accent transition-colors">
+                  {siteConfig.phone}
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 flex-shrink-0" />
-                <span>neollcjp@gmail.com</span>
+                <a href={`mailto:${siteConfig.email}`} className="hover:text-accent transition-colors break-all">
+                  {siteConfig.email}
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-primary-foreground/10 mt-8 pt-8 text-center text-sm text-primary-foreground/60">
-          <p>© 2024 Neo Trading Co., Ltd. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Neo Trading Co., Ltd. All rights reserved.</p>
         </div>
       </div>
     </footer>

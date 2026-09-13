@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Neo">
+  <defs>
+    <linearGradient id="neoBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="hsl(210,70%,28%)"/>
+      <stop offset="100%" stop-color="hsl(210,50%,15%)"/>
+    </linearGradient>
+    <clipPath id="neoClip"><rect width="48" height="48" rx="11"/></clipPath>
+  </defs>
+  <g clip-path="url(#neoClip)">
+    <rect width="48" height="48" rx="11" fill="url(#neoBg)"/>
+    <path d="M13 13h6.5l15.5 22h-6.5z" fill="hsl(25,95%,55%)"/>
+    <path d="M13 13h5v22h-5zM30 13h5v22h-5z" fill="#fff"/>
+  </g>
+</svg>
