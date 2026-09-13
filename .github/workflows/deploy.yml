@@ -1,0 +1,66 @@
+name: Deploy to Cloudflare Pages
+
+# Deploys straight from CI with wrangler. Cloudflare's own build pipeline is
+# deliberately not used: its Workers Builds framework detection insists on
+# rewriting vite.config.ts and fails on this project's config.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      # Vite inlines VITE_* at build time, so these must be present HERE —
+      # setting them in the Cloudflare dashboard has no effect on this build.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_WEB3FORMS_ACCESS_KEY: ${{ secrets.VITE_WEB3FORMS_ACCESS_KEY }}
+
+      # A missing key doesn't fail the build, it just inlines an empty string —
+      # the site then looks fine until someone tries to sign in. Catch it here.
+      - name: Verify Supabase config reached the bundle
+        run: |
+          if ! grep -q "supabase.co" dist/assets/*.js; then
+            echo "::error::VITE_SUPABASE_URL is missing or empty — check the repository secrets."
+            exit 1
+          fi
+          echo "Supabase config present in bundle."
+
+      # Harmless once the project exists; only does anything on the first run.
+      - name: Ensure Pages project exists
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create neo-used-cars --production-branch=main
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=neo-used-cars --branch=main
