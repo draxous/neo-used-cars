@@ -30,6 +30,21 @@ jobs:
 
       - run: npm ci
 
+      # A missing key doesn't fail the build, it just inlines an empty string —
+      # the site then deploys looking healthy and fails only at sign-in.
+      - name: Check required secrets are set
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: |
+          missing=""
+          [ -n "$VITE_SUPABASE_URL" ] || missing="$missing VITE_SUPABASE_URL"
+          [ -n "$VITE_SUPABASE_ANON_KEY" ] || missing="$missing VITE_SUPABASE_ANON_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s):$missing"
+            exit 1
+          fi
+
       # Vite inlines VITE_* at build time, so these must be present HERE —
       # setting them in the Cloudflare dashboard has no effect on this build.
       - name: Build
@@ -39,15 +54,17 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_WEB3FORMS_ACCESS_KEY: ${{ secrets.VITE_WEB3FORMS_ACCESS_KEY }}
 
-      # A missing key doesn't fail the build, it just inlines an empty string —
-      # the site then looks fine until someone tries to sign in. Catch it here.
-      - name: Verify Supabase config reached the bundle
+      # Match the project URL itself: the string "supabase.co" ships inside
+      # @supabase/supabase-js, so looking for that passes even with no config.
+      - name: Verify config reached the bundle
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         run: |
-          if ! grep -q "supabase.co" dist/assets/*.js; then
-            echo "::error::VITE_SUPABASE_URL is missing or empty — check the repository secrets."
+          if ! grep -qF "$VITE_SUPABASE_URL" dist/assets/*.js; then
+            echo "::error::VITE_SUPABASE_URL did not reach the bundle."
             exit 1
           fi
-          echo "Supabase config present in bundle."
+          echo "Supabase project URL present in bundle."
 
       # Harmless once the project exists; only does anything on the first run.
       - name: Ensure Pages project exists
