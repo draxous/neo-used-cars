@@ -205,9 +205,10 @@ const InquiryForm = ({
     onSuccess?.();
   };
 
-  const gap = variant === "compact" ? "space-y-3" : "space-y-4";
-  // The hero card is a narrow column, so paired fields stack there.
-  const pair = variant === "compact" ? "grid gap-3" : "grid sm:grid-cols-2 gap-4";
+  const gap = variant === "compact" ? "space-y-2.5" : "space-y-4";
+  // Paired side by side at every width, as in the design — stacking them made
+  // the form far too long in the hero card.
+  const pair = variant === "compact" ? "grid grid-cols-2 gap-2.5" : "grid grid-cols-2 gap-4";
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={cn(gap, className)} noValidate>
@@ -424,7 +425,7 @@ const InquiryForm = ({
         </div>
         <Textarea
           id="inquiry-message"
-          rows={variant === "compact" ? 3 : 4}
+          rows={variant === "compact" ? 2 : 4}
           maxLength={MESSAGE_LIMIT}
           placeholder="Tell us more about your dream car…"
           aria-invalid={Boolean(errors.message)}
@@ -437,7 +438,10 @@ const InquiryForm = ({
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gap-2 h-12 text-base font-semibold"
+        className={cn(
+          "w-full bg-accent hover:bg-accent/90 text-accent-foreground gap-2 font-semibold",
+          variant === "compact" ? "h-11" : "h-12 text-base"
+        )}
       >
         {isSubmitting ? (
           <>
@@ -452,9 +456,11 @@ const InquiryForm = ({
         )}
       </Button>
 
-      <p className="text-[11px] text-muted-foreground text-center leading-snug">
-        We reply within 24 hours. Your details are never shared.
-      </p>
+      {variant === "full" && (
+        <p className="text-[11px] text-muted-foreground text-center leading-snug">
+          We reply within 24 hours. Your details are never shared.
+        </p>
+      )}
     </form>
   );
 };
