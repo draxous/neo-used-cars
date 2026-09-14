@@ -9,6 +9,8 @@ import { createContext, useContext } from "react";
 import type { User } from "@supabase/supabase-js";
 
 export interface Account {
+  /** Supabase user id — the foreign key rows in `quotes` and `profiles` use. */
+  id: string;
   name: string;
   email: string;
   country: string;
@@ -55,6 +57,7 @@ export interface AuthContextValue {
 export const toAccount = (user: User): Account => {
   const meta = user.user_metadata ?? {};
   return {
+    id: user.id,
     name: typeof meta.name === "string" ? meta.name : "",
     email: user.email ?? "",
     country: typeof meta.country === "string" ? meta.country : "",

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { siteConfig, countries, budgetRanges } from "@/config/site";
 import { useAuth } from "@/lib/auth";
+import { saveQuoteRequest } from "@/lib/quotes";
 import { useUserData } from "@/lib/userData";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +42,48 @@ interface InquiryFormProps {
 
 const FieldError = ({ children }: { children?: string }) =>
   children ? <p className="text-xs text-destructive mt-1">{children}</p> : null;
+
+const subjectFor = (values: InquiryValues) =>
+  `Website inquiry from ${values.name}${values.vehicle ? ` — ${values.vehicle}` : ""}`;
+
+/** Last resort: hand the visitor their own mail client rather than lose the request. */
+const openMailClient = (values: InquiryValues) => {
+  const body = [
+    `Name: ${values.name}`,
+    `Email: ${values.email}`,
+    `Country: ${values.country}`,
+    values.vehicle ? `Vehicle of interest: ${values.vehicle}` : "",
+    values.budget ? `Budget: ${values.budget}` : "",
+    values.message ? `\n${values.message}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(
+    subjectFor(values)
+  )}&body=${encodeURIComponent(body)}`;
+};
+
+/** Optional heads-up email. The request is already stored either way. */
+const notifyByEmail = async (values: InquiryValues) => {
+  const response = await fetch("https://api.web3forms.com/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({
+      access_key: siteConfig.web3formsKey,
+      subject: subjectFor(values),
+      from_name: `${siteConfig.name} Website`,
+      name: values.name,
+      email: values.email,
+      country: values.country,
+      vehicle: values.vehicle || "Not specified",
+      budget: values.budget || "Not specified",
+      message: values.message || "No additional message",
+    }),
+  });
+  const data = await response.json();
+  if (!data.success) throw new Error(data.message ?? "Submission failed");
+};
 
 const InquiryForm = ({
   variant = "compact",
@@ -70,74 +113,50 @@ const InquiryForm = ({
   });
 
   const onSubmit = async (values: InquiryValues) => {
-    const subject = `Website inquiry from ${values.name}${
-      values.vehicle ? ` — ${values.vehicle}` : ""
-    }`;
-
-    // No Web3Forms key configured yet: fall back to the visitor's mail client
-    // so the form is never a dead end.
-    if (!siteConfig.web3formsKey) {
-      const body = [
-        `Name: ${values.name}`,
-        `Email: ${values.email}`,
-        `Country: ${values.country}`,
-        values.vehicle ? `Vehicle of interest: ${values.vehicle}` : "",
-        values.budget ? `Budget: ${values.budget}` : "",
-        values.message ? `\n${values.message}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
-
-      window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(
-        subject
-      )}&body=${encodeURIComponent(body)}`;
-
+    // The row is the record of the request; the email is a convenience on top.
+    try {
+      // Spelled out rather than passed whole: the project compiles with
+      // strictNullChecks off, which makes zod infer every field as optional.
+      await saveQuoteRequest(
+        {
+          name: values.name,
+          email: values.email,
+          country: values.country,
+          vehicle: values.vehicle,
+          budget: values.budget,
+          message: values.message,
+        },
+        user?.id ?? null
+      );
+    } catch (error) {
+      openMailClient(values);
       toast.info("Opening your email app", {
-        description:
-          "Add a Web3Forms key to send inquiries straight from the site.",
+        description: "We couldn't reach our servers just now — this sends it to us directly.",
       });
       return;
     }
 
-    try {
-      const response = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          access_key: siteConfig.web3formsKey,
-          subject,
-          from_name: `${siteConfig.name} Website`,
-          name: values.name,
-          email: values.email,
-          country: values.country,
-          vehicle: values.vehicle || "Not specified",
-          budget: values.budget || "Not specified",
-          message: values.message || "No additional message",
-        }),
-      });
+    // Never let a notification failure tell someone their request was lost.
+    if (siteConfig.web3formsKey) {
+      void notifyByEmail(values).catch(() => undefined);
+    }
 
-      const data = await response.json();
-      if (!data.success) throw new Error(data.message ?? "Submission failed");
+    toast.success("Inquiry sent!", {
+      description: "Our team will get back to you within 24 hours.",
+    });
 
-      toast.success("Inquiry sent!", {
-        description: "Our team will get back to you within 24 hours.",
-      });
-      // Signed-in customers get the inquiry on their activity feed.
-      if (user) {
-        logActivity({
-          type: "inquiry",
-          title: "Inquiry sent",
-          detail: values.vehicle?.trim() || "General inquiry",
-          href: "/dashboard/activity",
-        });
-      }
-      reset({ name: "", email: "", country: "", vehicle: "", budget: "", message: "" });
-      onSuccess?.();
-    } catch (error) {
-      toast.error("Could not send your inquiry", {
-        description: `Please email us directly at ${siteConfig.email}`,
+    // Signed-in customers get the inquiry on their activity feed.
+    if (user) {
+      logActivity({
+        type: "inquiry",
+        title: "Inquiry sent",
+        detail: values.vehicle?.trim() || "General inquiry",
+        href: "/dashboard/activity",
       });
     }
+
+    reset({ name: "", email: "", country: "", vehicle: "", budget: "", message: "" });
+    onSuccess?.();
   };
 
   return (
