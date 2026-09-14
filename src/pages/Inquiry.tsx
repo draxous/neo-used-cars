@@ -11,9 +11,7 @@ const Inquiry = () => {
   const reference = params.get("lot") ?? params.get("stock");
   const car = reference ? getCarById(reference) : undefined;
   const lot = car?.auction;
-  const defaultVehicle = car
-    ? `${car.year} ${car.make} ${car.model} (${lot ? `Lot ${lot.lotNumber}` : car.id})`
-    : "";
+
 
   return (
     <Layout>
@@ -91,7 +89,7 @@ const Inquiry = () => {
                   ? `About stock ${car.id}. The more detail you give, the more accurate our quote.`
                   : "The more detail you give, the more accurate our quote."}
             </p>
-            <InquiryForm variant="full" defaultVehicle={defaultVehicle} />
+            <InquiryForm variant="full" defaultMake={car?.make ?? ""} defaultModel={car?.model ?? ""} />
           </div>
         </div>
       </main>

@@ -2,7 +2,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
-import { Loader2, Send } from "lucide-react";
+import { ArrowUpRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,54 +14,82 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { siteConfig, countries, budgetRanges } from "@/config/site";
+import {
+  siteConfig,
+  countries,
+  budgetRanges,
+  yearRanges,
+  phoneCountries,
+} from "@/config/site";
 import { useAuth } from "@/lib/auth";
 import { saveQuoteRequest } from "@/lib/quotes";
 import { useUserData } from "@/lib/userData";
 import { cn } from "@/lib/utils";
 
+const MESSAGE_LIMIT = 1000;
+
 const inquirySchema = z.object({
-  name: z.string().min(2, "Please enter your name"),
-  email: z.string().email("Please enter a valid email"),
+  firstName: z.string().min(1, "Please enter your first name").max(80, "Too long"),
+  lastName: z.string().min(1, "Please enter your last name").max(80, "Too long"),
+  email: z.string().min(1, "Please enter your email").email("Please enter a valid email"),
+  phoneCountry: z.string().min(1),
+  phone: z.string().min(4, "Please enter your phone number").max(30, "Too long"),
   country: z.string().min(1, "Please select your country"),
-  vehicle: z.string().optional(),
-  budget: z.string().optional(),
-  message: z.string().max(1000, "Message is too long").optional(),
+  make: z.string().min(1, "Please enter a make").max(80, "Too long"),
+  model: z.string().min(1, "Please enter a model").max(80, "Too long"),
+  yearRange: z.string().min(1, "Please select a year range"),
+  budget: z.string().min(1, "Please select a budget"),
+  message: z.string().max(MESSAGE_LIMIT, "Message is too long").optional(),
 });
 
 type InquiryValues = z.infer<typeof inquirySchema>;
 
 interface InquiryFormProps {
-  /** "compact" drops the message field — used in the hero card. */
+  /** "compact" tightens spacing and stacks paired fields for the hero card. */
   variant?: "compact" | "full";
-  /** Pre-fills the vehicle field, e.g. from a car detail page. */
-  defaultVehicle?: string;
+  /** Pre-fills the vehicle, e.g. from a car detail page. */
+  defaultMake?: string;
+  defaultModel?: string;
   onSuccess?: () => void;
   className?: string;
 }
 
+/** Red asterisk marking a required field, as in the design. */
+const Required = () => (
+  <span className="text-destructive" aria-hidden="true">
+    *
+  </span>
+);
+
 const FieldError = ({ children }: { children?: string }) =>
   children ? <p className="text-xs text-destructive mt-1">{children}</p> : null;
 
-const subjectFor = (values: InquiryValues) =>
-  `Website inquiry from ${values.name}${values.vehicle ? ` — ${values.vehicle}` : ""}`;
+/** Dial codes repeat across countries, so the name is what we store. */
+const dialFor = (name: string) =>
+  phoneCountries.find((country) => country.name === name)?.dial ?? "";
 
-/** Last resort: hand the visitor their own mail client rather than lose the request. */
-const openMailClient = (values: InquiryValues) => {
-  const body = [
-    `Name: ${values.name}`,
+const subjectFor = (values: InquiryValues) =>
+  `Website inquiry from ${values.firstName} ${values.lastName} — ${values.make} ${values.model}`;
+
+const describe = (values: InquiryValues) =>
+  [
+    `Name: ${values.firstName} ${values.lastName}`,
     `Email: ${values.email}`,
+    `Phone: ${dialFor(values.phoneCountry)} ${values.phone}`,
     `Country: ${values.country}`,
-    values.vehicle ? `Vehicle of interest: ${values.vehicle}` : "",
-    values.budget ? `Budget: ${values.budget}` : "",
+    `Vehicle: ${values.make} ${values.model}`,
+    `Year range: ${values.yearRange}`,
+    `Budget: ${values.budget}`,
     values.message ? `\n${values.message}` : "",
   ]
     .filter(Boolean)
     .join("\n");
 
+/** Last resort: hand the visitor their own mail client rather than lose the request. */
+const openMailClient = (values: InquiryValues) => {
   window.location.href = `mailto:${siteConfig.email}?subject=${encodeURIComponent(
     subjectFor(values)
-  )}&body=${encodeURIComponent(body)}`;
+  )}&body=${encodeURIComponent(describe(values))}`;
 };
 
 /** Optional heads-up email. The request is already stored either way. */
@@ -73,11 +101,13 @@ const notifyByEmail = async (values: InquiryValues) => {
       access_key: siteConfig.web3formsKey,
       subject: subjectFor(values),
       from_name: `${siteConfig.name} Website`,
-      name: values.name,
+      name: `${values.firstName} ${values.lastName}`,
       email: values.email,
+      phone: `${dialFor(values.phoneCountry)} ${values.phone}`,
       country: values.country,
-      vehicle: values.vehicle || "Not specified",
-      budget: values.budget || "Not specified",
+      vehicle: `${values.make} ${values.model}`,
+      year_range: values.yearRange,
+      budget: values.budget,
       message: values.message || "No additional message",
     }),
   });
@@ -87,30 +117,42 @@ const notifyByEmail = async (values: InquiryValues) => {
 
 const InquiryForm = ({
   variant = "compact",
-  defaultVehicle = "",
+  defaultMake = "",
+  defaultModel = "",
   onSuccess,
   className,
 }: InquiryFormProps) => {
   const { user } = useAuth();
   const { logActivity } = useUserData();
 
+  const emptyForm = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneCountry: phoneCountries[0].name,
+    phone: "",
+    country: "",
+    make: defaultMake,
+    model: defaultModel,
+    yearRange: "",
+    budget: "",
+    message: "",
+  };
+
   const {
     register,
     handleSubmit,
     control,
+    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<InquiryValues>({
     resolver: zodResolver(inquirySchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      country: "",
-      vehicle: defaultVehicle,
-      budget: "",
-      message: "",
-    },
+    defaultValues: emptyForm,
   });
+
+  const message = watch("message") ?? "";
+  const phoneCountry = watch("phoneCountry");
 
   const onSubmit = async (values: InquiryValues) => {
     // The row is the record of the request; the email is a convenience on top.
@@ -119,10 +161,14 @@ const InquiryForm = ({
       // strictNullChecks off, which makes zod infer every field as optional.
       await saveQuoteRequest(
         {
-          name: values.name,
+          firstName: values.firstName,
+          lastName: values.lastName,
           email: values.email,
+          phone: `${dialFor(values.phoneCountry)} ${values.phone}`,
           country: values.country,
-          vehicle: values.vehicle,
+          make: values.make,
+          model: values.model,
+          yearRange: values.yearRange,
           budget: values.budget,
           message: values.message,
         },
@@ -150,52 +196,126 @@ const InquiryForm = ({
       logActivity({
         type: "inquiry",
         title: "Inquiry sent",
-        detail: values.vehicle?.trim() || "General inquiry",
+        detail: `${values.make} ${values.model}`.trim() || "General inquiry",
         href: "/dashboard/activity",
       });
     }
 
-    reset({ name: "", email: "", country: "", vehicle: "", budget: "", message: "" });
+    reset(emptyForm);
     onSuccess?.();
   };
 
+  const gap = variant === "compact" ? "space-y-3" : "space-y-4";
+  // The hero card is a narrow column, so paired fields stack there.
+  const pair = variant === "compact" ? "grid gap-3" : "grid sm:grid-cols-2 gap-4";
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className={cn("space-y-3", className)}>
-      <div>
-        <Label htmlFor="inquiry-name" className="text-xs font-medium">
-          Name
-        </Label>
-        <Input
-          id="inquiry-name"
-          placeholder="Your full name"
-          autoComplete="name"
-          {...register("name")}
-        />
-        <FieldError>{errors.name?.message}</FieldError>
+    <form onSubmit={handleSubmit(onSubmit)} className={cn(gap, className)} noValidate>
+      <div className={pair}>
+        <div>
+          <Label htmlFor="inquiry-first-name" className="text-xs font-medium">
+            First Name <Required />
+          </Label>
+          <Input
+            id="inquiry-first-name"
+            placeholder="John"
+            autoComplete="given-name"
+            aria-invalid={Boolean(errors.firstName)}
+            className="mt-1.5"
+            {...register("firstName")}
+          />
+          <FieldError>{errors.firstName?.message}</FieldError>
+        </div>
+
+        <div>
+          <Label htmlFor="inquiry-last-name" className="text-xs font-medium">
+            Last Name <Required />
+          </Label>
+          <Input
+            id="inquiry-last-name"
+            placeholder="Doe"
+            autoComplete="family-name"
+            aria-invalid={Boolean(errors.lastName)}
+            className="mt-1.5"
+            {...register("lastName")}
+          />
+          <FieldError>{errors.lastName?.message}</FieldError>
+        </div>
       </div>
 
       <div>
         <Label htmlFor="inquiry-email" className="text-xs font-medium">
-          Email
+          Email <Required />
         </Label>
         <Input
           id="inquiry-email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="johndoe@example.com"
           autoComplete="email"
+          aria-invalid={Boolean(errors.email)}
+          className="mt-1.5"
           {...register("email")}
         />
         <FieldError>{errors.email?.message}</FieldError>
       </div>
 
       <div>
-        <Label className="text-xs font-medium">Destination country</Label>
+        <Label htmlFor="inquiry-phone" className="text-xs font-medium">
+          Phone <Required />
+        </Label>
+        {/* Dial code and number read as a single control, as in the design. */}
+        <div className="mt-1.5 flex">
+          <Controller
+            name="phoneCountry"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value || undefined} onValueChange={field.onChange}>
+                <SelectTrigger
+                  aria-label="Country dial code"
+                  className="w-[4.75rem] flex-shrink-0 rounded-r-none border-r-0 focus:z-10"
+                >
+                  {/* Flag alone on the trigger; the list carries the detail. */}
+                  <SelectValue>
+                    <span className="text-base leading-none">
+                      {phoneCountries.find((country) => country.name === phoneCountry)?.flag}
+                    </span>
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {phoneCountries.map((country) => (
+                    <SelectItem key={country.name} value={country.name}>
+                      <span className="mr-2">{country.flag}</span>
+                      {country.name} <span className="text-muted-foreground">{country.dial}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          <Input
+            id="inquiry-phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel-national"
+            placeholder="Eg.3 1234 5678"
+            aria-invalid={Boolean(errors.phone)}
+            className="rounded-l-none"
+            {...register("phone")}
+          />
+        </div>
+        <FieldError>{errors.phone?.message}</FieldError>
+      </div>
+
+      <div>
+        <Label className="text-xs font-medium">
+          Country <Required />
+        </Label>
         <Controller
           name="country"
           control={control}
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger>
+            <Select value={field.value || undefined} onValueChange={field.onChange}>
+              <SelectTrigger className="mt-1.5" aria-invalid={Boolean(errors.country)}>
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent className="max-h-64">
@@ -211,62 +331,113 @@ const InquiryForm = ({
         <FieldError>{errors.country?.message}</FieldError>
       </div>
 
-      <div>
-        <Label htmlFor="inquiry-vehicle" className="text-xs font-medium">
-          Vehicle of interest{" "}
-          <span className="text-muted-foreground font-normal">(optional)</span>
-        </Label>
-        <Input
-          id="inquiry-vehicle"
-          placeholder="e.g. Toyota Land Cruiser Prado"
-          {...register("vehicle")}
-        />
-      </div>
-
-      <div>
-        <Label className="text-xs font-medium">
-          Budget <span className="text-muted-foreground font-normal">(optional)</span>
-        </Label>
-        <Controller
-          name="budget"
-          control={control}
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select budget" />
-              </SelectTrigger>
-              <SelectContent>
-                {budgetRanges.map((range) => (
-                  <SelectItem key={range} value={range}>
-                    {range}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        />
-      </div>
-
-      {variant === "full" && (
+      <div className={pair}>
         <div>
-          <Label htmlFor="inquiry-message" className="text-xs font-medium">
-            Message{" "}
-            <span className="text-muted-foreground font-normal">(optional)</span>
+          <Label htmlFor="inquiry-make" className="text-xs font-medium">
+            Make <Required />
           </Label>
-          <Textarea
-            id="inquiry-message"
-            rows={4}
-            placeholder="Tell us more about what you're looking for…"
-            {...register("message")}
+          <Input
+            id="inquiry-make"
+            placeholder="Toyota"
+            aria-invalid={Boolean(errors.make)}
+            className="mt-1.5"
+            {...register("make")}
           />
-          <FieldError>{errors.message?.message}</FieldError>
+          <FieldError>{errors.make?.message}</FieldError>
         </div>
-      )}
+
+        <div>
+          <Label htmlFor="inquiry-model" className="text-xs font-medium">
+            Model <Required />
+          </Label>
+          <Input
+            id="inquiry-model"
+            placeholder="Supra"
+            aria-invalid={Boolean(errors.model)}
+            className="mt-1.5"
+            {...register("model")}
+          />
+          <FieldError>{errors.model?.message}</FieldError>
+        </div>
+      </div>
+
+      <div className={pair}>
+        <div>
+          <Label className="text-xs font-medium">
+            Year Range <Required />
+          </Label>
+          <Controller
+            name="yearRange"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value || undefined} onValueChange={field.onChange}>
+                <SelectTrigger className="mt-1.5" aria-invalid={Boolean(errors.yearRange)}>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  {yearRanges.map((range) => (
+                    <SelectItem key={range} value={range}>
+                      {range}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          <FieldError>{errors.yearRange?.message}</FieldError>
+        </div>
+
+        <div>
+          <Label className="text-xs font-medium">
+            Budget <Required />
+          </Label>
+          <Controller
+            name="budget"
+            control={control}
+            render={({ field }) => (
+              <Select value={field.value || undefined} onValueChange={field.onChange}>
+                <SelectTrigger className="mt-1.5" aria-invalid={Boolean(errors.budget)}>
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  {budgetRanges.map((range) => (
+                    <SelectItem key={range} value={range}>
+                      {range}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
+          <FieldError>{errors.budget?.message}</FieldError>
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-baseline justify-between">
+          <Label htmlFor="inquiry-message" className="text-xs font-medium">
+            Message <span className="text-muted-foreground font-normal">(Optional)</span>
+          </Label>
+          <span className="text-xs tabular-nums text-muted-foreground">
+            {message.length}/{MESSAGE_LIMIT}
+          </span>
+        </div>
+        <Textarea
+          id="inquiry-message"
+          rows={variant === "compact" ? 3 : 4}
+          maxLength={MESSAGE_LIMIT}
+          placeholder="Tell us more about your dream car…"
+          aria-invalid={Boolean(errors.message)}
+          className="mt-1.5 resize-none"
+          {...register("message")}
+        />
+        <FieldError>{errors.message?.message}</FieldError>
+      </div>
 
       <Button
         type="submit"
         disabled={isSubmitting}
-        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gap-2"
+        className="w-full bg-accent hover:bg-accent/90 text-accent-foreground gap-2 h-12 text-base font-semibold"
       >
         {isSubmitting ? (
           <>
@@ -275,8 +446,8 @@ const InquiryForm = ({
           </>
         ) : (
           <>
-            <Send className="h-4 w-4" />
-            Send Inquiry
+            Submit Inquiry
+            <ArrowUpRight className="h-4 w-4" />
           </>
         )}
       </Button>

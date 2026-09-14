@@ -86,25 +86,34 @@ on conflict (id) do nothing;
 -- ---------------------------------------------------------------------------
 
 create table if not exists public.quotes (
-  id         uuid primary key default gen_random_uuid(),
-  created_at timestamptz not null default now(),
-  name       text not null,
-  email      text not null,
-  country    text not null,
-  vehicle    text,
-  budget     text,
-  message    text,
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz not null default now(),
+  first_name  text not null,
+  last_name   text not null,
+  email       text not null,
+  -- Stored with the dial code already prefixed, e.g. "+81 3 1234 5678".
+  phone       text not null,
+  country     text not null,
+  make        text not null,
+  model       text not null,
+  year_range  text not null,
+  budget      text not null,
+  message     text,
   -- Set when a signed-in customer submits; null for anonymous visitors.
-  user_id    uuid references auth.users on delete set null,
+  user_id     uuid references auth.users on delete set null,
 
   -- The insert policy below lets the public write to this table, so the
   -- length limits are enforced here too and not only in the browser.
-  constraint quotes_name_len    check (char_length(name) between 1 and 120),
-  constraint quotes_email_len   check (char_length(email) between 3 and 200),
-  constraint quotes_country_len check (char_length(country) between 1 and 80),
-  constraint quotes_vehicle_len check (vehicle is null or char_length(vehicle) <= 200),
-  constraint quotes_budget_len  check (budget  is null or char_length(budget)  <= 80),
-  constraint quotes_message_len check (message is null or char_length(message) <= 2000)
+  constraint quotes_first_name_len check (char_length(first_name) between 1 and 80),
+  constraint quotes_last_name_len  check (char_length(last_name)  between 1 and 80),
+  constraint quotes_email_len      check (char_length(email)   between 3 and 200),
+  constraint quotes_phone_len      check (char_length(phone)   between 4 and 40),
+  constraint quotes_country_len    check (char_length(country) between 1 and 80),
+  constraint quotes_make_len       check (char_length(make)    between 1 and 80),
+  constraint quotes_model_len      check (char_length(model)   between 1 and 80),
+  constraint quotes_year_len       check (char_length(year_range) between 1 and 40),
+  constraint quotes_budget_len     check (char_length(budget)  between 1 and 80),
+  constraint quotes_message_len    check (message is null or char_length(message) <= 1000)
 );
 
 create index if not exists quotes_created_at_idx on public.quotes (created_at desc);

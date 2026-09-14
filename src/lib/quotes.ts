@@ -8,16 +8,18 @@
 import { supabase } from "@/lib/supabase";
 
 export interface QuoteRequest {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
+  /** Dial code included, e.g. "+81 3 1234 5678". */
+  phone: string;
   country: string;
-  vehicle?: string;
-  budget?: string;
+  make: string;
+  model: string;
+  yearRange: string;
+  budget: string;
   message?: string;
 }
-
-/** Empty optional fields are stored as null rather than "". */
-const orNull = (value?: string) => value?.trim() || null;
 
 /**
  * Saves a quote request, linking it to the account when one is signed in.
@@ -27,12 +29,17 @@ export const saveQuoteRequest = async (values: QuoteRequest, userId: string | nu
   if (!supabase) throw new Error("Supabase is not configured");
 
   const { error } = await supabase.from("quotes").insert({
-    name: values.name.trim(),
+    first_name: values.firstName.trim(),
+    last_name: values.lastName.trim(),
     email: values.email.trim(),
+    phone: values.phone.trim(),
     country: values.country,
-    vehicle: orNull(values.vehicle),
-    budget: orNull(values.budget),
-    message: orNull(values.message),
+    make: values.make.trim(),
+    model: values.model.trim(),
+    year_range: values.yearRange,
+    budget: values.budget,
+    // An empty message is stored as null rather than "".
+    message: values.message?.trim() || null,
     user_id: userId,
   });
 

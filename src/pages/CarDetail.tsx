@@ -216,10 +216,7 @@ const CarDetail = () => {
                 <span className="font-mono">{lot ? lot.lotNumber : car.id}</span> — we reply within
                 24 hours.
               </p>
-              <InquiryForm
-                variant="compact"
-                defaultVehicle={`${car.year} ${car.make} ${car.model} (${lot ? `Lot ${lot.lotNumber}` : car.id})`}
-              />
+              <InquiryForm variant="compact" defaultMake={car.make} defaultModel={car.model} />
             </div>
           </aside>
         </div>
