@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Car as CarIcon,
@@ -7,6 +8,7 @@ import {
   Search,
   Ship,
 } from "lucide-react";
+import OrderMessageSheet from "@/components/OrderMessageSheet";
 import ShipmentTracker from "@/components/ShipmentTracker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { carPath, formatMileage, formatPrice, getCarById } from "@/data/cars";
-import { formatDate, shipmentStages, stageIndex, useUserData } from "@/lib/userData";
+import { formatDate, Purchase, shipmentStages, stageIndex, useUserData } from "@/lib/userData";
 
 /** Days until an ETA, phrased for a customer who's waiting. */
 const etaLabel = (iso?: string): string | null => {
@@ -31,6 +33,8 @@ const etaLabel = (iso?: string): string | null => {
 
 const MyVehicles = () => {
   const { purchases } = useUserData();
+  // Which order the message panel is open for, and the label to show in it.
+  const [asking, setAsking] = useState<{ purchase: Purchase; carLabel?: string } | null>(null);
 
   const sorted = [...purchases].sort((a, b) => b.purchasedAt.localeCompare(a.purchasedAt));
 
@@ -49,6 +53,7 @@ const MyVehicles = () => {
         <div className="space-y-4">
           {sorted.map((purchase) => {
             const car = getCarById(purchase.carId);
+            const carLabel = car ? `${car.year} ${car.make} ${car.model}` : undefined;
             const eta = etaLabel(purchase.etaDate);
             const stageLabel = shipmentStages[stageIndex(purchase.stage)]?.label;
 
@@ -141,11 +146,14 @@ const MyVehicles = () => {
                           </Link>
                         </Button>
                       )}
-                      <Button asChild variant="outline" size="sm" className="gap-1.5">
-                        <Link to={`/inquiry?order=${purchase.id}`}>
-                          <MessageSquareQuote className="h-3.5 w-3.5" />
-                          Ask about this order
-                        </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setAsking({ purchase, carLabel })}
+                      >
+                        <MessageSquareQuote className="h-3.5 w-3.5" />
+                        Ask about this order
                       </Button>
                     </div>
                   </div>
@@ -170,6 +178,13 @@ const MyVehicles = () => {
           </Button>
         </div>
       )}
+
+      <OrderMessageSheet
+        purchase={asking?.purchase ?? null}
+        carLabel={asking?.carLabel}
+        open={Boolean(asking)}
+        onOpenChange={(open) => !open && setAsking(null)}
+      />
     </div>
   );
 };

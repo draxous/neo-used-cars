@@ -137,3 +137,56 @@ create policy "Customers can read their own requests"
   on public.quotes for select
   to authenticated
   using (auth.uid() = user_id);
+
+
+-- ---------------------------------------------------------------------------
+-- order_messages
+-- ---------------------------------------------------------------------------
+--
+-- "Ask about this order" from My Vehicles. Only signed-in customers can write
+-- here, so unlike quotes there is no anonymous path.
+--
+-- The vehicle is recorded three ways on purpose: order_id and car_id are the
+-- keys an admin panel will join on, and car_label is a plain-text snapshot so
+-- a question still reads correctly if the listing is later edited or removed.
+-- Who is asking comes from user_id — join public.profiles for their name and
+-- auth.users for their email rather than copying either here.
+
+create table if not exists public.order_messages (
+  id         uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  user_id    uuid not null references auth.users on delete cascade,
+  order_id   text not null,
+  car_id     text,
+  car_label  text,
+  topic      text not null,
+  message    text not null,
+  -- Triage for the future admin panel.
+  status     text not null default 'new',
+
+  constraint order_messages_order_len   check (char_length(order_id) between 1 and 60),
+  constraint order_messages_car_len     check (car_id is null or char_length(car_id) <= 60),
+  constraint order_messages_label_len   check (car_label is null or char_length(car_label) <= 160),
+  constraint order_messages_topic_len   check (char_length(topic) between 1 and 60),
+  constraint order_messages_message_len check (char_length(message) between 1 and 2000),
+  constraint order_messages_status      check (status in ('new', 'open', 'answered', 'closed'))
+);
+
+create index if not exists order_messages_user_idx on public.order_messages (user_id, created_at desc);
+create index if not exists order_messages_order_idx on public.order_messages (order_id);
+
+alter table public.order_messages enable row level security;
+
+-- A customer may only ever write as themselves...
+drop policy if exists "Customers can ask about their own orders" on public.order_messages;
+create policy "Customers can ask about their own orders"
+  on public.order_messages for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+-- ...and only ever read their own thread back.
+drop policy if exists "Customers can read their own messages" on public.order_messages;
+create policy "Customers can read their own messages"
+  on public.order_messages for select
+  to authenticated
+  using (auth.uid() = user_id);
