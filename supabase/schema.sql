@@ -101,6 +101,8 @@ create table if not exists public.quotes (
   message     text,
   -- Set when a signed-in customer submits; null for anonymous visitors.
   user_id     uuid references auth.users on delete set null,
+  -- Triage for the admin panel.
+  status      text not null default 'new',
 
   -- The insert policy below lets the public write to this table, so the
   -- length limits are enforced here too and not only in the browser.
@@ -113,7 +115,8 @@ create table if not exists public.quotes (
   constraint quotes_model_len      check (char_length(model)   between 1 and 80),
   constraint quotes_year_len       check (char_length(year_range) between 1 and 40),
   constraint quotes_budget_len     check (char_length(budget)  between 1 and 80),
-  constraint quotes_message_len    check (message is null or char_length(message) <= 1000)
+  constraint quotes_message_len    check (message is null or char_length(message) <= 1000),
+  constraint quotes_status         check (status in ('new', 'open', 'quoted', 'closed'))
 );
 
 create index if not exists quotes_created_at_idx on public.quotes (created_at desc);
@@ -190,3 +193,128 @@ create policy "Customers can read their own messages"
   on public.order_messages for select
   to authenticated
   using (auth.uid() = user_id);
+
+
+-- ---------------------------------------------------------------------------
+-- Admin access
+-- ---------------------------------------------------------------------------
+--
+-- Being an admin is a row in user_roles, not a flag on the account: it can be
+-- granted and revoked without touching auth, and every policy below asks the
+-- same question. Grant the first one by hand:
+--
+--   insert into public.user_roles (user_id, role)
+--   select id, 'admin' from auth.users where email = 'you@example.com';
+
+create table if not exists public.user_roles (
+  user_id    uuid primary key references auth.users on delete cascade,
+  role       text not null default 'admin',
+  created_at timestamptz not null default now(),
+
+  constraint user_roles_role check (role in ('admin', 'staff'))
+);
+
+alter table public.user_roles enable row level security;
+
+-- SECURITY DEFINER so it reads user_roles without RLS. A policy on user_roles
+-- that called a function which itself queried user_roles under RLS would
+-- recurse forever.
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.user_roles where user_id = auth.uid());
+$$;
+
+-- Everyone may check their own role — that's how the app knows to show /admin.
+drop policy if exists "Can read own role" on public.user_roles;
+create policy "Can read own role"
+  on public.user_roles for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+-- Admins see the whole team. Granting a role stays a manual database action:
+-- there is no insert or update policy, deliberately.
+drop policy if exists "Admins can read all roles" on public.user_roles;
+create policy "Admins can read all roles"
+  on public.user_roles for select
+  to authenticated
+  using (public.is_admin());
+
+
+-- Admin reach over the customer-facing tables --------------------------------
+
+drop policy if exists "Admins can read every quote" on public.quotes;
+create policy "Admins can read every quote"
+  on public.quotes for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Admins can triage quotes" on public.quotes;
+create policy "Admins can triage quotes"
+  on public.quotes for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Admins can read every message" on public.order_messages;
+create policy "Admins can read every message"
+  on public.order_messages for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Admins can triage messages" on public.order_messages;
+create policy "Admins can triage messages"
+  on public.order_messages for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Admins can read every profile" on public.profiles;
+create policy "Admins can read every profile"
+  on public.profiles for select
+  to authenticated
+  using (public.is_admin());
+
+
+-- Order messages with the customer attached ----------------------------------
+--
+-- PostgREST cannot read auth.users, and copying the email into profiles would
+-- leave the panel showing a stale address after someone changes it. This joins
+-- it live instead. SECURITY DEFINER to reach auth.users, with the admin check
+-- inside the query, so a non-admin calling it simply gets nothing back.
+
+create or replace function public.admin_order_messages()
+returns table (
+  id             uuid,
+  created_at     timestamptz,
+  order_id       text,
+  car_id         text,
+  car_label      text,
+  topic          text,
+  message        text,
+  status         text,
+  customer_name  text,
+  customer_email text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    m.id, m.created_at, m.order_id, m.car_id, m.car_label,
+    m.topic, m.message, m.status,
+    coalesce(p.name, '') as customer_name,
+    u.email::text       as customer_email
+  from public.order_messages m
+  left join public.profiles p on p.id = m.user_id
+  left join auth.users     u on u.id = m.user_id
+  where public.is_admin()
+  order by m.created_at desc;
+$$;
+
+revoke all on function public.admin_order_messages() from anon;

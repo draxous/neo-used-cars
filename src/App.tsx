@@ -25,6 +25,10 @@ import DashboardVehicles from "./pages/dashboard/MyVehicles";
 import AuthProvider from "./components/AuthProvider";
 import UserDataProvider from "./components/UserDataProvider";
 import RequireAuth from "./components/RequireAuth";
+import RequireAdmin from "./components/RequireAdmin";
+import AdminLayout from "./components/AdminLayout";
+import AdminQuotes from "./pages/admin/Quotes";
+import AdminMessages from "./pages/admin/Messages";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +88,19 @@ const App = () => (
               </Route>
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              {/* Admin — gated by role; the real boundary is RLS in the database */}
+              <Route path="/admin" element={<Navigate to="/admin/quotes" replace />} />
+              <Route
+                element={
+                  <RequireAdmin>
+                    <AdminLayout />
+                  </RequireAdmin>
+                }
+              >
+                <Route path="/admin/quotes" element={<AdminQuotes />} />
+                <Route path="/admin/messages" element={<AdminMessages />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </UserDataProvider>
