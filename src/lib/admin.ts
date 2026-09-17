@@ -43,17 +43,22 @@ export interface AdminOrderMessage {
   customerEmail: string;
 }
 
-/** True once the signed-in account is confirmed to hold a role. */
+export type AdminRole = "super_admin" | "admin" | "staff";
+
+/**
+ * The signed-in account's role, once confirmed. `isSuperAdmin` is the extra
+ * bit /admin/team needs — inviting is the one thing an ordinary admin can't do.
+ */
 export const useIsAdmin = () => {
   const { user, ready } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [role, setRole] = useState<AdminRole | null>(null);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     if (!ready) return;
 
     if (!user || !supabase) {
-      setIsAdmin(false);
+      setRole(null);
       setChecked(true);
       return;
     }
@@ -68,7 +73,7 @@ export const useIsAdmin = () => {
       .maybeSingle()
       .then(({ data }) => {
         if (cancelled) return;
-        setIsAdmin(Boolean(data));
+        setRole((data?.role as AdminRole) ?? null);
         setChecked(true);
       });
 
@@ -77,7 +82,12 @@ export const useIsAdmin = () => {
     };
   }, [user, ready]);
 
-  return { isAdmin, checked: checked && ready };
+  return {
+    role,
+    isAdmin: role !== null,
+    isSuperAdmin: role === "super_admin",
+    checked: checked && ready,
+  };
 };
 
 /* ------------------------------------------------------------------ */

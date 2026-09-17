@@ -29,6 +29,8 @@ import RequireAdmin from "./components/RequireAdmin";
 import AdminLayout from "./components/AdminLayout";
 import AdminQuotes from "./pages/admin/Quotes";
 import AdminMessages from "./pages/admin/Messages";
+import AdminTeam from "./pages/admin/Team";
+import AdminJoin from "./pages/AdminJoin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -90,6 +92,9 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               {/* Admin — gated by role; the real boundary is RLS in the database */}
               <Route path="/admin" element={<Navigate to="/admin/quotes" replace />} />
+              {/* Redeeming an invitation happens before the role exists, so
+                  this one sits outside the guard on purpose. */}
+              <Route path="/admin/join" element={<AdminJoin />} />
               <Route
                 element={
                   <RequireAdmin>
@@ -99,6 +104,7 @@ const App = () => (
               >
                 <Route path="/admin/quotes" element={<AdminQuotes />} />
                 <Route path="/admin/messages" element={<AdminMessages />} />
+                <Route path="/admin/team" element={<AdminTeam />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

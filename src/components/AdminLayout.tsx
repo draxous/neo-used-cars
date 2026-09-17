@@ -1,8 +1,9 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { ArrowLeft, Inbox, MessagesSquare, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Inbox, MessagesSquare, ShieldCheck, Users } from "lucide-react";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { useIsAdmin } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 const sections = [
@@ -10,9 +11,14 @@ const sections = [
   { to: "/admin/messages", label: "Order messages", icon: MessagesSquare },
 ];
 
+/** Only a super admin can invite, so only they get the tab. */
+const superAdminSections = [{ to: "/admin/team", label: "Team", icon: Users }];
+
 /** Shell for /admin: identity row, section nav, and the active screen. */
 const AdminLayout = () => {
   const { user } = useAuth();
+  const { isSuperAdmin } = useIsAdmin();
+  const tabs = isSuperAdmin ? [...sections, ...superAdminSections] : sections;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -36,7 +42,7 @@ const AdminLayout = () => {
           </div>
 
           <nav className="flex gap-1 -mb-px overflow-x-auto">
-            {sections.map((section) => (
+            {tabs.map((section) => (
               <NavLink
                 key={section.to}
                 to={section.to}
