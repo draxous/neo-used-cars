@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { cars, getMakes } from "@/data/cars";
+import { cars, getMakes, isListed } from "@/data/cars";
 
 const values = [
   "Direct export from Japan — no middlemen",
@@ -14,7 +14,7 @@ const values = [
 
 const AboutUs = () => {
   const stats = [
-    { value: `${cars.length}+`, label: "Vehicles in stock" },
+    { value: `${cars.filter(isListed).length}+`, label: "Vehicles in stock" },
     { value: `${getMakes().length}`, label: "Makes available" },
     { value: "Tokyo", label: "Based in Japan" },
     { value: "24h", label: "Inquiry response" },

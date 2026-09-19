@@ -53,7 +53,7 @@ const MyVehicles = () => {
         <div className="space-y-4">
           {sorted.map((purchase) => {
             const car = getCarById(purchase.carId);
-            const carLabel = car ? `${car.year} ${car.make} ${car.model}` : undefined;
+            const carLabel = car ? `${car.year} ${car.make} ${car.model}` : purchase.carLabel;
             const eta = etaLabel(purchase.etaDate);
             const stageLabel = shipmentStages[stageIndex(purchase.stage)]?.label;
 
@@ -74,7 +74,7 @@ const MyVehicles = () => {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h2 className="font-display font-semibold text-lg text-foreground truncate">
-                          {car ? `${car.year} ${car.make} ${car.model}` : purchase.carId}
+                          {carLabel ?? purchase.id}
                         </h2>
                         <p className="text-sm text-muted-foreground truncate">
                           {car ? `${car.grade ?? car.bodyType} · ${formatMileage(car.mileageKm)}` : ""}

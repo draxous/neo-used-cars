@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,11 +28,20 @@ import UserDataProvider from "./components/UserDataProvider";
 import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./components/RequireAdmin";
 import AdminLayout from "./components/AdminLayout";
-import AdminQuotes from "./pages/admin/Quotes";
-import AdminMessages from "./pages/admin/Messages";
-import AdminTeam from "./pages/admin/Team";
 import AdminJoin from "./pages/AdminJoin";
 import NotFound from "./pages/NotFound";
+
+// The admin screens are only ever opened by the team, so they load on demand
+// rather than riding along in every visitor's first download.
+const AdminOverview = lazy(() => import("./pages/admin/Overview"));
+const AdminInventory = lazy(() => import("./pages/admin/Inventory"));
+const AdminVehicleEditor = lazy(() => import("./pages/admin/VehicleEditor"));
+const AdminOrders = lazy(() => import("./pages/admin/Orders"));
+const AdminCustomers = lazy(() => import("./pages/admin/Customers"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
+const AdminQuotes = lazy(() => import("./pages/admin/Quotes"));
+const AdminMessages = lazy(() => import("./pages/admin/Messages"));
+const AdminTeam = lazy(() => import("./pages/admin/Team"));
 
 const queryClient = new QueryClient();
 
@@ -91,7 +101,6 @@ const App = () => (
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               {/* Admin — gated by role; the real boundary is RLS in the database */}
-              <Route path="/admin" element={<Navigate to="/admin/quotes" replace />} />
               {/* Redeeming an invitation happens before the role exists, so
                   this one sits outside the guard on purpose. */}
               <Route path="/admin/join" element={<AdminJoin />} />
@@ -102,6 +111,13 @@ const App = () => (
                   </RequireAdmin>
                 }
               >
+                <Route path="/admin" element={<AdminOverview />} />
+                <Route path="/admin/inventory" element={<AdminInventory />} />
+                <Route path="/admin/inventory/new" element={<AdminVehicleEditor />} />
+                <Route path="/admin/inventory/:id" element={<AdminVehicleEditor />} />
+                <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/customers" element={<AdminCustomers />} />
+                <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/admin/quotes" element={<AdminQuotes />} />
                 <Route path="/admin/messages" element={<AdminMessages />} />
                 <Route path="/admin/team" element={<AdminTeam />} />

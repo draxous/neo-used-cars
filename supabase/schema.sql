@@ -3,9 +3,19 @@
 -- Run once in the Supabase dashboard: SQL Editor -> New query -> paste -> Run.
 -- Safe to re-run; every statement is idempotent.
 --
--- Two tables, holding only what the site actually collects:
---   profiles  one row per account, filled in automatically at sign-up
---   quotes    one row per "Get a Quote" submission
+-- What lives here:
+--   profiles         one row per account, filled in automatically at sign-up
+--   quotes           one row per "Get a Quote" submission
+--   order_messages   questions a customer asks about a vehicle they bought
+--   user_roles       who can reach /admin, and as what
+--   admin_invites    one-time links into the admin team
+--   vehicles         the stock list the whole public site renders
+--   orders           a customer's purchase, and its shipping stage
+--   order_updates    the timeline shown under each order
+--   inquiry_replies  the team's answers to quotes and order messages
+--   site_settings    contact details and the announcement bar, one row
+--
+-- Vehicles are seeded separately, once, from supabase/seed_vehicles.sql.
 --
 -- Passwords, sessions and email confirmation stay in auth.users, managed by
 -- Supabase. Nothing here duplicates them.
@@ -646,3 +656,691 @@ revoke all on function public.list_admin_invites()            from anon;
 revoke all on function public.revoke_admin_invite(uuid)       from anon;
 revoke all on function public.list_admin_team()               from anon;
 revoke all on function public.revoke_admin_role(uuid)         from anon;
+
+
+-- ---------------------------------------------------------------------------
+-- Admin tiers
+-- ---------------------------------------------------------------------------
+--
+-- is_admin() is "anyone on the team". A few things are one step up — deleting
+-- stock or orders, clearing spam, editing the site's contact details — and
+-- those ask is_manager() instead, which leaves 'staff' out. Staff can still
+-- list cars, move orders along and answer customers.
+
+create or replace function public.is_manager()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.user_roles
+     where user_id = auth.uid()
+       and role in ('super_admin', 'admin')
+  );
+$$;
+
+-- Keeps updated_at honest without every caller remembering to send it.
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at := now();
+  return new;
+end;
+$$;
+
+
+-- Changing a role ------------------------------------------------------------
+--
+-- Promotions and demotions within the team. Adding someone new still goes
+-- through an invitation; this only touches people who already hold a role.
+-- Changing your own is blocked for the same reason removing yourself is.
+
+create or replace function public.set_admin_role(p_user_id uuid, p_role text)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_super_admin() then
+    raise exception 'Only a super admin can change roles' using errcode = '42501';
+  end if;
+
+  if p_role not in ('super_admin', 'admin', 'staff') then
+    raise exception 'Unknown role' using errcode = '22023';
+  end if;
+
+  if p_user_id = auth.uid() then
+    raise exception 'You cannot change your own role' using errcode = '42501';
+  end if;
+
+  update public.user_roles set role = p_role where user_id = p_user_id;
+
+  if not found then
+    raise exception 'That person is not on the team' using errcode = '22023';
+  end if;
+end;
+$$;
+
+revoke all on function public.set_admin_role(uuid, text) from anon;
+
+
+-- Clearing spam --------------------------------------------------------------
+--
+-- The quote form is open to the public, so junk arrives. Managers can delete.
+
+drop policy if exists "Managers can delete quotes" on public.quotes;
+create policy "Managers can delete quotes"
+  on public.quotes for delete
+  to authenticated
+  using (public.is_manager());
+
+drop policy if exists "Managers can delete messages" on public.order_messages;
+create policy "Managers can delete messages"
+  on public.order_messages for delete
+  to authenticated
+  using (public.is_manager());
+
+
+-- ---------------------------------------------------------------------------
+-- vehicles
+-- ---------------------------------------------------------------------------
+--
+-- The stock list. Mirrors the `Car` type in src/data/cars.ts column for column;
+-- src/lib/inventory.ts is the one place that maps between the two.
+--
+-- `published` decides whether the public can see a row at all. `status` is
+-- the sales state: sold units stay readable (a customer's order still links to
+-- its photos) but drop out of every listing.
+--
+-- The id is the stock number and doubles as the URL segment, so the admin
+-- panel fixes it once a car is saved.
+
+create table if not exists public.vehicles (
+  id            text primary key,
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+  make          text not null,
+  model         text not null,
+  grade         text,
+  year          integer not null,
+  price_usd     integer not null,
+  mileage_km    integer not null,
+  fuel          text not null,
+  transmission  text not null,
+  drive         text not null,
+  engine_cc     integer not null,
+  body_type     text not null,
+  color         text not null,
+  doors         integer not null,
+  seats         integer not null,
+  steering      text not null default 'Right',
+  condition     text,
+  chassis_code  text,
+  location      text not null,
+  images        text[] not null default '{}',
+  collections   text[] not null default '{}',
+  featured      boolean not null default false,
+  arrived_at    date not null default current_date,
+  status        text not null default 'available',
+  published     boolean not null default true,
+  -- Present only on auction lots; all five travel together.
+  auction_house         text,
+  auction_lot_number    text,
+  auction_date          date,
+  auction_estimate_low  integer,
+  auction_estimate_high integer,
+
+  constraint vehicles_id_format   check (id ~ '^[A-Za-z0-9-]{2,40}$'),
+  constraint vehicles_make_len    check (char_length(make)  between 1 and 60),
+  constraint vehicles_model_len   check (char_length(model) between 1 and 80),
+  constraint vehicles_year        check (year between 1950 and 2100),
+  constraint vehicles_price       check (price_usd >= 0),
+  constraint vehicles_mileage     check (mileage_km >= 0),
+  constraint vehicles_engine      check (engine_cc >= 0),
+  constraint vehicles_doors       check (doors between 0 and 10),
+  constraint vehicles_seats       check (seats between 0 and 60),
+  constraint vehicles_fuel         check (fuel in ('Petrol', 'Diesel', 'Hybrid', 'Electric', 'LPG')),
+  constraint vehicles_transmission check (transmission in ('Automatic', 'Manual', 'CVT')),
+  constraint vehicles_drive        check (drive in ('2WD', '4WD', 'AWD')),
+  constraint vehicles_steering     check (steering in ('Right', 'Left')),
+  constraint vehicles_status       check (status in ('available', 'reserved', 'sold')),
+  constraint vehicles_images_count check (cardinality(images) <= 30),
+  constraint vehicles_auction_whole check (
+    (auction_house is null and auction_lot_number is null and auction_date is null
+      and auction_estimate_low is null and auction_estimate_high is null)
+    or
+    (auction_house is not null and auction_lot_number is not null and auction_date is not null
+      and auction_estimate_low is not null and auction_estimate_high is not null)
+  )
+);
+
+create index if not exists vehicles_arrived_idx on public.vehicles (arrived_at desc);
+
+drop trigger if exists vehicles_touch on public.vehicles;
+create trigger vehicles_touch
+  before update on public.vehicles
+  for each row execute function public.touch_updated_at();
+
+alter table public.vehicles enable row level security;
+
+drop policy if exists "Anyone can read published vehicles" on public.vehicles;
+create policy "Anyone can read published vehicles"
+  on public.vehicles for select
+  to anon, authenticated
+  using (published);
+
+-- Hidden drafts too, so the team can preview before publishing.
+drop policy if exists "Admins can read every vehicle" on public.vehicles;
+create policy "Admins can read every vehicle"
+  on public.vehicles for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Admins can add vehicles" on public.vehicles;
+create policy "Admins can add vehicles"
+  on public.vehicles for insert
+  to authenticated
+  with check (public.is_admin());
+
+drop policy if exists "Admins can edit vehicles" on public.vehicles;
+create policy "Admins can edit vehicles"
+  on public.vehicles for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Managers can delete vehicles" on public.vehicles;
+create policy "Managers can delete vehicles"
+  on public.vehicles for delete
+  to authenticated
+  using (public.is_manager());
+
+
+-- Vehicle photos --------------------------------------------------------------
+--
+-- A public bucket: listing photos are meant to be seen, and a public URL keeps
+-- them cacheable. Only the team can write. The browser shrinks photos before
+-- upload (src/lib/inventory.ts), so the 5 MB cap is a backstop.
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('vehicle-images', 'vehicle-images', true, 5242880,
+        array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do nothing;
+
+drop policy if exists "Admins can upload vehicle images" on storage.objects;
+create policy "Admins can upload vehicle images"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'vehicle-images' and public.is_admin());
+
+drop policy if exists "Admins can replace vehicle images" on storage.objects;
+create policy "Admins can replace vehicle images"
+  on storage.objects for update
+  to authenticated
+  using (bucket_id = 'vehicle-images' and public.is_admin());
+
+drop policy if exists "Admins can delete vehicle images" on storage.objects;
+create policy "Admins can delete vehicle images"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'vehicle-images' and public.is_admin());
+
+
+-- ---------------------------------------------------------------------------
+-- orders and order_updates
+-- ---------------------------------------------------------------------------
+--
+-- What a customer sees on My Vehicles. The team creates the order once
+-- payment lands and moves it through the five stages; each move writes a line
+-- to order_updates, which is the timeline under the tracker.
+--
+-- car_label is a snapshot for the same reason as on order_messages. car_id
+-- refuses deletion of a car that has been sold: hide it instead.
+
+create sequence if not exists public.order_number_seq start 3001;
+
+create table if not exists public.orders (
+  id             text primary key default ('NEO-ORD-' || nextval('public.order_number_seq')::text),
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now(),
+  user_id        uuid not null references auth.users on delete cascade,
+  car_id         text references public.vehicles on update cascade on delete restrict,
+  car_label      text not null,
+  purchased_at   timestamptz not null default now(),
+  price_paid_usd integer not null,
+  stage          text not null default 'purchased',
+  destination    text not null default '',
+  vessel         text,
+  eta_date       date,
+
+  constraint orders_label_len  check (char_length(car_label) between 1 and 160),
+  constraint orders_price      check (price_paid_usd >= 0),
+  constraint orders_stage      check (stage in ('purchased', 'inspected', 'booked', 'shipped', 'arrived')),
+  constraint orders_dest_len   check (char_length(destination) <= 120),
+  constraint orders_vessel_len check (vessel is null or char_length(vessel) <= 120)
+);
+
+create index if not exists orders_user_idx on public.orders (user_id, purchased_at desc);
+
+drop trigger if exists orders_touch on public.orders;
+create trigger orders_touch
+  before update on public.orders
+  for each row execute function public.touch_updated_at();
+
+alter table public.orders enable row level security;
+
+drop policy if exists "Customers can read their own orders" on public.orders;
+create policy "Customers can read their own orders"
+  on public.orders for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "Admins can read every order" on public.orders;
+create policy "Admins can read every order"
+  on public.orders for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Admins can create orders" on public.orders;
+create policy "Admins can create orders"
+  on public.orders for insert
+  to authenticated
+  with check (public.is_admin());
+
+drop policy if exists "Admins can edit orders" on public.orders;
+create policy "Admins can edit orders"
+  on public.orders for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Managers can delete orders" on public.orders;
+create policy "Managers can delete orders"
+  on public.orders for delete
+  to authenticated
+  using (public.is_manager());
+
+
+create table if not exists public.order_updates (
+  id         uuid primary key default gen_random_uuid(),
+  order_id   text not null references public.orders on delete cascade,
+  at         timestamptz not null default now(),
+  label      text not null,
+  -- Set when this line recorded a stage change; null for a free-text note.
+  stage      text,
+  created_by uuid references auth.users on delete set null default auth.uid(),
+
+  constraint order_updates_label_len check (char_length(label) between 1 and 200),
+  constraint order_updates_stage check (
+    stage is null or stage in ('purchased', 'inspected', 'booked', 'shipped', 'arrived')
+  )
+);
+
+create index if not exists order_updates_order_idx on public.order_updates (order_id, at desc);
+
+alter table public.order_updates enable row level security;
+
+drop policy if exists "Customers can read updates on their orders" on public.order_updates;
+create policy "Customers can read updates on their orders"
+  on public.order_updates for select
+  to authenticated
+  using (exists (
+    select 1 from public.orders o
+     where o.id = order_updates.order_id and o.user_id = auth.uid()
+  ));
+
+drop policy if exists "Admins can read every update" on public.order_updates;
+create policy "Admins can read every update"
+  on public.order_updates for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Admins can post updates" on public.order_updates;
+create policy "Admins can post updates"
+  on public.order_updates for insert
+  to authenticated
+  with check (public.is_admin());
+
+drop policy if exists "Admins can remove updates" on public.order_updates;
+create policy "Admins can remove updates"
+  on public.order_updates for delete
+  to authenticated
+  using (public.is_admin());
+
+
+-- The wording a customer sees when a stage changes and nobody typed anything.
+create or replace function public.order_stage_label(p_stage text)
+returns text
+language sql
+immutable
+as $$
+  select case p_stage
+    when 'purchased' then 'Payment received — unit secured'
+    when 'inspected' then 'Pre-export inspection passed'
+    when 'booked'    then 'Space booked on a vessel'
+    when 'shipped'   then 'Departed Japan'
+    when 'arrived'   then 'Arrived at destination port'
+  end;
+$$;
+
+-- Creates the order, its first timeline line, and (optionally) marks the car
+-- sold, all or nothing. SECURITY INVOKER: the RLS above does the gatekeeping.
+create or replace function public.admin_create_order(
+  p_user_id     uuid,
+  p_car_id      text,
+  p_car_label   text,
+  p_price       integer,
+  p_destination text,
+  p_purchased   timestamptz default now(),
+  p_mark_sold   boolean default true
+)
+returns text
+language plpgsql
+volatile
+set search_path = public
+as $$
+declare
+  v_id text;
+begin
+  if not public.is_admin() then
+    raise exception 'Only the team can create orders' using errcode = '42501';
+  end if;
+
+  insert into public.orders (user_id, car_id, car_label, price_paid_usd, destination, purchased_at)
+  values (p_user_id, nullif(p_car_id, ''), p_car_label, p_price, coalesce(p_destination, ''),
+          coalesce(p_purchased, now()))
+  returning id into v_id;
+
+  insert into public.order_updates (order_id, at, label, stage)
+  values (v_id, coalesce(p_purchased, now()), public.order_stage_label('purchased'), 'purchased');
+
+  if p_mark_sold and nullif(p_car_id, '') is not null then
+    update public.vehicles set status = 'sold' where id = p_car_id;
+  end if;
+
+  return v_id;
+end;
+$$;
+
+-- Moves an order to a stage and writes the timeline line in the same step, so
+-- the tracker and the history can never disagree.
+create or replace function public.admin_set_order_stage(
+  p_order_id text,
+  p_stage    text,
+  p_label    text default null
+)
+returns void
+language plpgsql
+volatile
+set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Only the team can update orders' using errcode = '42501';
+  end if;
+
+  update public.orders set stage = p_stage where id = p_order_id;
+  if not found then
+    raise exception 'No such order' using errcode = '22023';
+  end if;
+
+  insert into public.order_updates (order_id, label, stage)
+  values (
+    p_order_id,
+    coalesce(nullif(trim(p_label), ''), public.order_stage_label(p_stage)),
+    p_stage
+  );
+end;
+$$;
+
+-- The /admin/orders list, with the customer's live name and address.
+create or replace function public.admin_list_orders()
+returns table (
+  id             text,
+  created_at     timestamptz,
+  user_id        uuid,
+  car_id         text,
+  car_label      text,
+  purchased_at   timestamptz,
+  price_paid_usd integer,
+  stage          text,
+  destination    text,
+  vessel         text,
+  eta_date       date,
+  customer_name  text,
+  customer_email text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    o.id, o.created_at, o.user_id, o.car_id, o.car_label, o.purchased_at,
+    o.price_paid_usd, o.stage, o.destination, o.vessel, o.eta_date,
+    coalesce(p.name, '') as customer_name,
+    u.email::text        as customer_email
+  from public.orders o
+  left join public.profiles p on p.id = o.user_id
+  left join auth.users     u on u.id = o.user_id
+  where public.is_admin()
+  order by o.purchased_at desc;
+$$;
+
+revoke all on function public.admin_create_order(uuid, text, text, integer, text, timestamptz, boolean) from anon;
+revoke all on function public.admin_set_order_stage(text, text, text) from anon;
+revoke all on function public.admin_list_orders() from anon;
+
+
+-- ---------------------------------------------------------------------------
+-- Customers
+-- ---------------------------------------------------------------------------
+--
+-- Everyone with an account, for /admin/customers and for picking who an order
+-- belongs to. Reaches auth.users for the address and last sign-in.
+
+create or replace function public.admin_list_customers()
+returns table (
+  user_id        uuid,
+  email          text,
+  name           text,
+  country        text,
+  phone          text,
+  company        text,
+  created_at     timestamptz,
+  last_sign_in   timestamptz,
+  email_verified boolean,
+  order_count    integer,
+  quote_count    integer,
+  team_role      text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    u.id,
+    u.email::text,
+    coalesce(p.name, ''),
+    coalesce(p.country, ''),
+    p.phone,
+    p.company,
+    u.created_at,
+    u.last_sign_in_at,
+    u.email_confirmed_at is not null,
+    (select count(*)::int from public.orders o where o.user_id = u.id),
+    (select count(*)::int from public.quotes q where q.user_id = u.id),
+    r.role
+  from auth.users u
+  left join public.profiles   p on p.id = u.id
+  left join public.user_roles r on r.user_id = u.id
+  where public.is_admin()
+  order by u.created_at desc;
+$$;
+
+revoke all on function public.admin_list_customers() from anon;
+
+
+-- ---------------------------------------------------------------------------
+-- inquiry_replies
+-- ---------------------------------------------------------------------------
+--
+-- The team's answers, attached to exactly one quote or one order message.
+-- Account holders read them in their dashboard; anyone else gets the same
+-- words by email, which the admin panel drafts from here.
+
+create table if not exists public.inquiry_replies (
+  id         uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  quote_id   uuid references public.quotes on delete cascade,
+  message_id uuid references public.order_messages on delete cascade,
+  author_id  uuid references auth.users on delete set null default auth.uid(),
+  body       text not null,
+
+  constraint inquiry_replies_one_parent check (num_nonnulls(quote_id, message_id) = 1),
+  constraint inquiry_replies_body_len   check (char_length(body) between 1 and 4000)
+);
+
+create index if not exists inquiry_replies_quote_idx   on public.inquiry_replies (quote_id);
+create index if not exists inquiry_replies_message_idx on public.inquiry_replies (message_id);
+
+alter table public.inquiry_replies enable row level security;
+
+drop policy if exists "Admins can read replies" on public.inquiry_replies;
+create policy "Admins can read replies"
+  on public.inquiry_replies for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Admins can reply" on public.inquiry_replies;
+create policy "Admins can reply"
+  on public.inquiry_replies for insert
+  to authenticated
+  with check (public.is_admin() and author_id = auth.uid());
+
+drop policy if exists "Customers can read replies to them" on public.inquiry_replies;
+create policy "Customers can read replies to them"
+  on public.inquiry_replies for select
+  to authenticated
+  using (
+    exists (select 1 from public.quotes q
+             where q.id = inquiry_replies.quote_id and q.user_id = auth.uid())
+    or
+    exists (select 1 from public.order_messages m
+             where m.id = inquiry_replies.message_id and m.user_id = auth.uid())
+  );
+
+-- Answering moves the thread along: a message becomes 'answered', a brand-new
+-- quote becomes 'open'. A quote is only 'quoted' when someone says so.
+create or replace function public.after_inquiry_reply()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.message_id is not null then
+    update public.order_messages set status = 'answered'
+     where id = new.message_id and status in ('new', 'open');
+  end if;
+
+  if new.quote_id is not null then
+    update public.quotes set status = 'open'
+     where id = new.quote_id and status = 'new';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists inquiry_replies_after on public.inquiry_replies;
+create trigger inquiry_replies_after
+  after insert on public.inquiry_replies
+  for each row execute function public.after_inquiry_reply();
+
+-- The admin view, with who wrote each reply.
+create or replace function public.admin_inquiry_replies()
+returns table (
+  id          uuid,
+  created_at  timestamptz,
+  quote_id    uuid,
+  message_id  uuid,
+  body        text,
+  author_name text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    r.id, r.created_at, r.quote_id, r.message_id, r.body,
+    coalesce(nullif(p.name, ''), u.email::text, 'Former team member')
+  from public.inquiry_replies r
+  left join public.profiles p on p.id = r.author_id
+  left join auth.users     u on u.id = r.author_id
+  where public.is_admin()
+  order by r.created_at;
+$$;
+
+revoke all on function public.admin_inquiry_replies() from anon;
+
+
+-- ---------------------------------------------------------------------------
+-- site_settings
+-- ---------------------------------------------------------------------------
+--
+-- A single row the public site reads at start-up: the contact details shown
+-- in the header, footer and inquiry page, and an optional announcement bar.
+-- Anything left blank falls back to src/config/site.ts.
+
+create table if not exists public.site_settings (
+  id                   integer primary key default 1,
+  updated_at           timestamptz not null default now(),
+  updated_by           uuid references auth.users on delete set null,
+  contact_email        text not null default '',
+  phone                text not null default '',
+  -- Digits only, with the country code: used for tel: and WhatsApp links.
+  phone_raw            text not null default '',
+  address              text not null default '',
+  announcement         text not null default '',
+  announcement_enabled boolean not null default false,
+
+  constraint site_settings_single      check (id = 1),
+  constraint site_settings_email_len   check (char_length(contact_email) <= 200),
+  constraint site_settings_phone_len   check (char_length(phone) <= 40),
+  constraint site_settings_phone_raw   check (phone_raw ~ '^[0-9]{0,20}$'),
+  constraint site_settings_address_len check (char_length(address) <= 300),
+  constraint site_settings_banner_len  check (char_length(announcement) <= 240)
+);
+
+insert into public.site_settings (id, contact_email, phone, phone_raw, address)
+values (1, 'neollcjp@gmail.com', '+81-80-9718-5080', '818097185080',
+        'Neo LLC, Higashikomatsugawa 1-12-1, Edogawa, Tokyo')
+on conflict (id) do nothing;
+
+drop trigger if exists site_settings_touch on public.site_settings;
+create trigger site_settings_touch
+  before update on public.site_settings
+  for each row execute function public.touch_updated_at();
+
+alter table public.site_settings enable row level security;
+
+drop policy if exists "Anyone can read site settings" on public.site_settings;
+create policy "Anyone can read site settings"
+  on public.site_settings for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "Managers can edit site settings" on public.site_settings;
+create policy "Managers can edit site settings"
+  on public.site_settings for update
+  to authenticated
+  using (public.is_manager())
+  with check (public.is_manager());

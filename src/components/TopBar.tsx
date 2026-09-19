@@ -1,4 +1,13 @@
-import { ChevronDown, Clock, LayoutDashboard, LogOut, Mail, Phone, User } from "lucide-react";
+import {
+  ChevronDown,
+  Clock,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Phone,
+  ShieldCheck,
+  User,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -8,11 +17,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { siteConfig } from "@/config/site";
+import { useIsAdmin } from "@/lib/admin";
 import { useAuth } from "@/lib/auth";
 
 const TopBar = () => {
   const [japanTime, setJapanTime] = useState("");
   const { user, ready, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
     const updateTime = () => {
@@ -39,15 +51,15 @@ const TopBar = () => {
             <Clock className="h-4 w-4" />
             <span>Japan Time: {japanTime}</span>
           </div>
-          <a href="mailto:neollcjp@gmail.com" className="flex items-center gap-2 hover:text-accent transition-colors">
+          <a href={`mailto:${siteConfig.email}`} className="flex items-center gap-2 hover:text-accent transition-colors">
             <Mail className="h-4 w-4" />
             <span className="hidden sm:inline">Send Email</span>
           </a>
         </div>
         <div className="flex items-center gap-6">
-          <a href="tel:+818097185080" className="flex items-center gap-2 hover:text-accent transition-colors">
+          <a href={`tel:+${siteConfig.phoneRaw}`} className="flex items-center gap-2 hover:text-accent transition-colors">
             <Phone className="h-4 w-4" />
-            <span>+81-80-9718-5080</span>
+            <span>{siteConfig.phone}</span>
           </a>
           {/* Account — swaps for a menu once you're signed in */}
           {ready && user ? (
@@ -71,6 +83,14 @@ const TopBar = () => {
                     My dashboard
                   </Link>
                 </DropdownMenuItem>
+                {isAdmin && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="gap-2 cursor-pointer">
+                      <ShieldCheck className="h-4 w-4" />
+                      Admin panel
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer">
                   <LogOut className="h-4 w-4" />
                   Sign out

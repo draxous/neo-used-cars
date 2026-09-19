@@ -128,6 +128,12 @@ export const revokeAdminRole = async (userId: string): Promise<void> => {
   if (error) throw new Error(describe(error, "Couldn't remove that person."));
 };
 
+/** Promotes or demotes someone already on the team. Not yourself. */
+export const setAdminRole = async (userId: string, role: AdminRole): Promise<void> => {
+  const { error } = await client().rpc("set_admin_role", { p_user_id: userId, p_role: role });
+  if (error) throw new Error(describe(error, "Couldn't change that role."));
+};
+
 /* ------------------------------------------------------------------ */
 /* Redeeming (the invited person)                                      */
 /* ------------------------------------------------------------------ */

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, Loader2, Mail, MessagesSquare, Search } from "lucide-react";
+import { toast } from "sonner";
+import { AlertCircle, Loader2, Mail, MessagesSquare, Search, Trash2 } from "lucide-react";
+import AdminReplyThread from "@/components/AdminReplyThread";
 import AdminStatusSelect from "@/components/AdminStatusSelect";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,24 +16,40 @@ import {
 } from "@/components/ui/select";
 import {
   AdminOrderMessage,
+  InquiryReply,
+  deleteOrderMessage,
+  groupReplies,
   listOrderMessagesForAdmin,
+  listReplies,
   messageStatuses,
+  sendReply,
   setMessageStatus,
+  useIsAdmin,
 } from "@/lib/admin";
+import { useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/userData";
 
 const Messages = () => {
+  const { user } = useAuth();
+  const { isManager } = useIsAdmin();
   const [messages, setMessages] = useState<AdminOrderMessage[]>([]);
+  const [replies, setReplies] = useState<Map<string, InquiryReply[]>>(new Map());
+  const [deleting, setDeleting] = useState<AdminOrderMessage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true);
     setError(null);
     try {
-      setMessages(await listOrderMessagesForAdmin());
+      const [nextMessages, nextReplies] = await Promise.all([
+        listOrderMessagesForAdmin(),
+        listReplies(),
+      ]);
+      setMessages(nextMessages);
+      setReplies(groupReplies(nextReplies));
     } catch {
       setError("Couldn't load order messages. Check the database connection.");
     } finally {
@@ -157,11 +177,25 @@ const Messages = () => {
                   </div>
                 </div>
 
-                <AdminStatusSelect
-                  value={item.status}
-                  options={messageStatuses}
-                  onChange={(status) => setMessageStatus(item.id, status)}
-                />
+                <div className="flex items-center gap-1">
+                  <AdminStatusSelect
+                    key={item.status}
+                    value={item.status}
+                    options={messageStatuses}
+                    onChange={(status) => setMessageStatus(item.id, status)}
+                  />
+                  {isManager && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => setDeleting(item)}
+                      aria-label="Delete message"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <Badge variant="secondary" className="font-normal mt-3">
@@ -171,10 +205,49 @@ const Messages = () => {
               <p className="text-sm text-foreground mt-2 whitespace-pre-wrap break-words border-l-2 border-border pl-3">
                 {item.message}
               </p>
+
+              <AdminReplyThread
+                id={item.id}
+                replies={replies.get(item.id) ?? []}
+                email={item.customerEmail}
+                subject={`Re: ${item.topic} — order ${item.orderId}`}
+                seenInDashboard
+                onSend={async (body) => {
+                  if (!user) throw new Error("Not signed in");
+                  await sendReply({ messageId: item.id }, body, user.id);
+                  void load(true);
+                }}
+              />
             </article>
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="Delete this message?"
+        description={
+          deleting && (
+            <>
+              {deleting.customerName || "The customer"}'s message about {deleting.orderId} and any
+              replies to it will be removed for good, including from their dashboard.
+            </>
+          )
+        }
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          if (!deleting) return;
+          try {
+            await deleteOrderMessage(deleting.id);
+            setMessages((current) => current.filter((item) => item.id !== deleting.id));
+            toast.success("Message deleted");
+          } catch (issue) {
+            toast.error(issue instanceof Error ? issue.message : "Couldn't delete that message");
+            throw issue;
+          }
+        }}
+      />
     </div>
   );
 };

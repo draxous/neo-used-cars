@@ -179,11 +179,28 @@ const OrderMessageSheet = ({
                     <p className="text-sm text-foreground mt-1 whitespace-pre-wrap break-words">
                       {item.message}
                     </p>
-                    {item.status === "answered" ? (
-                      <p className="text-[11px] text-primary mt-1.5">Answered by our team</p>
-                    ) : (
-                      <p className="text-[11px] text-muted-foreground mt-1.5">Awaiting a reply</p>
-                    )}
+                    {item.replies.map((reply) => (
+                      <div
+                        key={reply.id}
+                        className="mt-2.5 rounded-md border-l-2 border-primary bg-card px-3 py-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-medium text-primary">Neo team</span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {formatDate(reply.createdAt)}
+                          </span>
+                        </div>
+                        <p className="text-sm text-foreground mt-0.5 whitespace-pre-wrap break-words">
+                          {reply.body}
+                        </p>
+                      </div>
+                    ))}
+                    {item.replies.length === 0 &&
+                      (item.status === "answered" ? (
+                        <p className="text-[11px] text-primary mt-1.5">Answered by email</p>
+                      ) : (
+                        <p className="text-[11px] text-muted-foreground mt-1.5">Awaiting a reply</p>
+                      ))}
                   </li>
                 ))}
               </ol>
@@ -269,7 +286,7 @@ const OrderMessageSheet = ({
           </Button>
 
           <p className="text-[11px] text-muted-foreground text-center leading-snug">
-            Replies come by email to the address on your account.
+            Our replies appear right here, above this form.
           </p>
         </form>
       </SheetContent>

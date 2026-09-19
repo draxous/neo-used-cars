@@ -1,11 +1,12 @@
 import { ReactNode, useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import AnnouncementBar from "./AnnouncementBar";
 import TopBar from "./TopBar";
 import Header from "./Header";
 import Footer from "./Footer";
 import WhatsAppButton from "./WhatsAppButton";
 
-/** Shared chrome for every page: top bar, header, footer, WhatsApp button. */
+/** Shared chrome for every page: announcement, top bar, header, footer, WhatsApp button. */
 const Layout = ({ children }: { children: ReactNode }) => {
   const { pathname } = useLocation();
 
@@ -16,6 +17,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <AnnouncementBar />
       <TopBar />
       <Header />
       <div className="flex-1">{children}</div>

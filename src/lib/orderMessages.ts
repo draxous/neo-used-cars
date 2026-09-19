@@ -24,12 +24,20 @@ export interface OrderMessageDraft {
   message: string;
 }
 
+/** An answer from the team, shown under the question it replies to. */
+export interface OrderMessageReply {
+  id: string;
+  createdAt: string;
+  body: string;
+}
+
 export interface OrderMessage {
   id: string;
   createdAt: string;
   topic: string;
   message: string;
   status: string;
+  replies: OrderMessageReply[];
 }
 
 /** Sends a question. Throws so the caller can show the failure. */
@@ -48,7 +56,7 @@ export const sendOrderMessage = async (draft: OrderMessageDraft, userId: string)
   if (error) throw error;
 };
 
-/** Everything this customer has already asked about one order, newest last. */
+/** Everything this customer has asked about one order, with our replies, newest last. */
 export const listOrderMessages = async (orderId: string): Promise<OrderMessage[]> => {
   if (!supabase) return [];
 
@@ -59,12 +67,23 @@ export const listOrderMessages = async (orderId: string): Promise<OrderMessage[]
     .order("created_at", { ascending: true });
 
   if (error) throw error;
+  if (!data?.length) return [];
 
-  return (data ?? []).map((row) => ({
+  // RLS lets a customer read replies only to their own messages.
+  const { data: replies } = await supabase
+    .from("inquiry_replies")
+    .select("id, created_at, message_id, body")
+    .in("message_id", data.map((row) => row.id))
+    .order("created_at", { ascending: true });
+
+  return data.map((row) => ({
     id: row.id,
     createdAt: row.created_at,
     topic: row.topic,
     message: row.message,
     status: row.status,
+    replies: (replies ?? [])
+      .filter((reply) => reply.message_id === row.id)
+      .map((reply) => ({ id: reply.id, createdAt: reply.created_at, body: reply.body })),
   }));
 };

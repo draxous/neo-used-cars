@@ -1,9 +1,9 @@
 /**
  * Per-account data: favourites, activity feed and vehicle orders.
  *
- * DEMO ONLY, like `auth.ts` — everything lives in this browser, keyed by the
- * signed-in email. When the API lands, keep these shapes and swap the storage
- * functions for requests; the provider is the only place that touches storage.
+ * Orders come from the database (src/lib/orders.ts). Favourites and the
+ * activity feed still live in this browser, keyed by the signed-in email; the
+ * provider is the only place that touches that storage.
  */
 import { createContext, useContext } from "react";
 import { Car } from "@/data/cars";
@@ -43,7 +43,10 @@ export const shipmentStages: { value: ShipmentStage; label: string; description:
 export interface Purchase {
   /** Order reference, e.g. "NEO-ORD-2291". */
   id: string;
+  /** Empty when the unit was never on the stock list. */
   carId: string;
+  /** Snapshot taken when the order was made, e.g. "2020 Toyota Land Cruiser Prado". */
+  carLabel?: string;
   purchasedAt: string;
   pricePaidUsd: number;
   stage: ShipmentStage;
@@ -55,16 +58,17 @@ export interface Purchase {
   updates: { at: string; label: string }[];
 }
 
+/** What's kept in this browser. Orders are not — they come from the database. */
 export interface UserData {
   /** Stock numbers, newest first. */
   favorites: string[];
   activity: ActivityEvent[];
-  purchases: Purchase[];
 }
 
-export const emptyUserData: UserData = { favorites: [], activity: [], purchases: [] };
+export const emptyUserData: UserData = { favorites: [], activity: [] };
 
 export interface UserDataContextValue extends UserData {
+  purchases: Purchase[];
   isFavorite: (carId: string) => boolean;
   toggleFavorite: (car: Car) => void;
   /** Records an event on the activity feed. */
@@ -92,8 +96,11 @@ export const readUserData = (email: string): UserData => {
     const parsed = JSON.parse(raw) as Partial<UserData>;
     return {
       favorites: parsed.favorites ?? [],
-      activity: parsed.activity ?? [],
-      purchases: parsed.purchases ?? [],
+      // Drop the demo order events older builds seeded; real ones are derived
+      // from the database now and would otherwise show twice.
+      activity: (parsed.activity ?? []).filter(
+        (event) => event.type !== "order" && event.type !== "shipping"
+      ),
     };
   } catch {
     return emptyUserData;

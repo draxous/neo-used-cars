@@ -1,22 +1,39 @@
 /**
  * Central place for contact details and third-party keys.
  * Update these in one spot rather than hunting through components.
+ *
+ * The contact details and announcement below are only defaults: src/bootstrap.ts
+ * overwrites them from the `site_settings` table before the first render, and
+ * the team edits that row at /admin/settings.
  */
-export const siteConfig = {
-  name: "Neo",
-  tagline: "The Japanese Used Car Exporter",
-  email: "neollcjp@gmail.com",
-  phone: "+81-80-9718-5080",
+export interface SiteConfig {
+  name: string;
+  tagline: string;
+  email: string;
+  phone: string;
   /** Digits only — used for tel: and WhatsApp links. */
-  phoneRaw: "818097185080",
-  address: "Neo LLC, Higashikomatsugawa 1-12-1, Edogawa, Tokyo",
+  phoneRaw: string;
+  address: string;
+  /** Shown in a bar above the header when set. Empty means no bar. */
+  announcement: string;
   /**
    * Free access key from https://web3forms.com (enter your email, they send it).
    * Put it in a .env file as VITE_WEB3FORMS_ACCESS_KEY=your-key-here
    * Without it, inquiry forms fall back to opening the visitor's email client.
    */
+  web3formsKey: string;
+}
+
+export const siteConfig: SiteConfig = {
+  name: "Neo",
+  tagline: "The Japanese Used Car Exporter",
+  email: "neollcjp@gmail.com",
+  phone: "+81-80-9718-5080",
+  phoneRaw: "818097185080",
+  address: "Neo LLC, Higashikomatsugawa 1-12-1, Edogawa, Tokyo",
+  announcement: "",
   web3formsKey: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY ?? "",
-} as const;
+};
 
 /** Top destination markets for Japanese used vehicle exports. */
 export const countries = [

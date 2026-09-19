@@ -3,8 +3,11 @@
  *
  * This is the single source of truth for every vehicle on the site — listing
  * pages, make/model pages, search and detail pages all read from here.
- * When a real backend arrives, swap the arrays below for API calls; the
- * helper functions and the `Car` shape are what the components depend on.
+ *
+ * The list itself comes from the `vehicles` table: src/bootstrap.ts loads it
+ * before the first render and hands it to `setInventory`, so every helper
+ * below can stay synchronous. `seedCars` is what the site shows when Supabase
+ * isn't configured, and what supabase/seed_vehicles.sql was generated from.
  */
 
 export type Fuel = "Petrol" | "Diesel" | "Hybrid" | "Electric" | "LPG";
@@ -25,6 +28,9 @@ export interface AuctionLot {
 }
 
 export type ListingType = "stock" | "auction";
+
+/** Sales state, set from /admin/inventory. Sold units drop out of listings. */
+export type SaleStatus = "available" | "reserved" | "sold";
 
 export interface Car {
   /** Stock number — also the URL segment: /stock-cars/toyota/prado/NEO-1042 */
@@ -62,6 +68,10 @@ export interface Car {
    * which is what `listingTypeOf` keys off.
    */
   auction?: AuctionLot;
+  /** Missing on seed data, which is all available and published. */
+  status?: SaleStatus;
+  /** False for a draft only the team can see. */
+  published?: boolean;
 }
 
 /** Turns "Land Cruiser Prado" into "land-cruiser-prado" for URLs. */
@@ -121,7 +131,7 @@ const img = {
   interior: "https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?w=800&h=600&fit=crop",
 };
 
-export const cars: Car[] = [
+export const seedCars: Car[] = [
   {
     id: "NEO-1042",
     make: "Toyota",
@@ -818,11 +828,30 @@ export const cars: Car[] = [
 /* Query helpers — components use these instead of touching the array. */
 /* ------------------------------------------------------------------ */
 
+/**
+ * The live list. A `let` so `setInventory` can swap it: ES module bindings are
+ * live, so every importer sees the new array without re-importing.
+ */
+export let cars: Car[] = seedCars;
+
+/** Replaces the inventory — called once at start-up, and after admin edits. */
+export const setInventory = (next: Car[]) => {
+  cars = next;
+};
+
+/**
+ * Whether a car belongs in listings and search. Sold and unpublished units are
+ * still reachable by id, so an order keeps its photos and the team can
+ * preview a draft, but nobody browses into them.
+ */
+export const isListed = (car: Car): boolean =>
+  car.published !== false && car.status !== "sold";
+
 /** Stock we own versus a lot we would bid on. */
 export const listingTypeOf = (car: Car): ListingType => (car.auction ? "auction" : "stock");
 
 export const listingsOfType = (type: ListingType = "stock"): Car[] =>
-  cars.filter((car) => listingTypeOf(car) === type);
+  cars.filter((car) => isListed(car) && listingTypeOf(car) === type);
 
 export interface MakeSummary {
   name: string;
@@ -969,6 +998,7 @@ export const facetOptionLabel = (key: FacetKey, value: string): string => {
 };
 
 const matchesCar = (car: Car, filters: CarFilters): boolean => {
+  if (!isListed(car)) return false;
   if (listingTypeOf(car) !== (filters.listingType ?? "stock")) return false;
   if (filters.make && slugify(car.make) !== filters.make) return false;
   if (filters.model && slugify(car.model) !== filters.model) return false;
@@ -1112,7 +1142,8 @@ export const priceBands = [
 
 /** Years covered by the current inventory, newest first. */
 export const getYearRange = (): number[] => {
-  const years = cars.map((car) => car.year);
+  const years = cars.filter(isListed).map((car) => car.year);
+  if (years.length === 0) return [];
   const min = Math.min(...years);
   const max = Math.max(...years);
   return Array.from({ length: max - min + 1 }, (_, i) => max - i);

@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, Inbox, Loader2, Mail, Phone, Search } from "lucide-react";
+import { toast } from "sonner";
+import { AlertCircle, Inbox, Loader2, Mail, Phone, Search, Trash2 } from "lucide-react";
+import AdminReplyThread from "@/components/AdminReplyThread";
 import AdminStatusSelect from "@/components/AdminStatusSelect";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,21 +14,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AdminQuote, listQuotes, quoteStatuses, setQuoteStatus } from "@/lib/admin";
+import {
+  AdminQuote,
+  InquiryReply,
+  deleteQuote,
+  groupReplies,
+  listQuotes,
+  listReplies,
+  quoteStatuses,
+  sendReply,
+  setQuoteStatus,
+  useIsAdmin,
+} from "@/lib/admin";
+import { useAuth } from "@/lib/auth";
 import { formatDate } from "@/lib/userData";
 
 const Quotes = () => {
+  const { user } = useAuth();
+  const { isManager } = useIsAdmin();
   const [quotes, setQuotes] = useState<AdminQuote[]>([]);
+  const [replies, setReplies] = useState<Map<string, InquiryReply[]>>(new Map());
+  const [deleting, setDeleting] = useState<AdminQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true);
     setError(null);
     try {
-      setQuotes(await listQuotes());
+      const [nextQuotes, nextReplies] = await Promise.all([listQuotes(), listReplies()]);
+      setQuotes(nextQuotes);
+      setReplies(groupReplies(nextReplies));
     } catch {
       setError("Couldn't load quote requests. Check the database connection.");
     } finally {
@@ -160,11 +182,25 @@ const Quotes = () => {
                   </div>
                 </div>
 
-                <AdminStatusSelect
-                  value={quote.status}
-                  options={quoteStatuses}
-                  onChange={(status) => setQuoteStatus(quote.id, status)}
-                />
+                <div className="flex items-center gap-1">
+                  <AdminStatusSelect
+                    key={quote.status}
+                    value={quote.status}
+                    options={quoteStatuses}
+                    onChange={(status) => setQuoteStatus(quote.id, status)}
+                  />
+                  {isManager && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => setDeleting(quote)}
+                      aria-label="Delete request"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mt-3">
@@ -184,10 +220,51 @@ const Quotes = () => {
                   {quote.message}
                 </p>
               )}
+
+              <AdminReplyThread
+                id={quote.id}
+                replies={replies.get(quote.id) ?? []}
+                email={quote.email}
+                subject={`Your quote request: ${quote.make} ${quote.model}`}
+                // Quote replies aren't shown on the customer dashboard yet.
+                seenInDashboard={false}
+                onSend={async (body) => {
+                  if (!user) throw new Error("Not signed in");
+                  await sendReply({ quoteId: quote.id }, body, user.id);
+                  void load(true);
+                }}
+              />
             </article>
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="Delete this request?"
+        description={
+          deleting && (
+            <>
+              The request from {deleting.firstName} {deleting.lastName} ({deleting.email}) and
+              any replies to it will be removed for good. Use this for spam; for a finished
+              enquiry, set the status to closed instead.
+            </>
+          )
+        }
+        confirmLabel="Delete"
+        onConfirm={async () => {
+          if (!deleting) return;
+          try {
+            await deleteQuote(deleting.id);
+            setQuotes((current) => current.filter((quote) => quote.id !== deleting.id));
+            toast.success("Request deleted");
+          } catch (issue) {
+            toast.error(issue instanceof Error ? issue.message : "Couldn't delete that request");
+            throw issue;
+          }
+        }}
+      />
     </div>
   );
 };

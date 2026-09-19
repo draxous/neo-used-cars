@@ -34,7 +34,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/lib/auth";
-import { useIsAdmin } from "@/lib/admin";
+import { AdminRole, useIsAdmin } from "@/lib/admin";
 import {
   AdminInvite,
   InvitableRole,
@@ -47,8 +47,11 @@ import {
   revokeAdminInvite,
   revokeAdminRole,
   roleLabel,
+  setAdminRole,
 } from "@/lib/adminInvites";
 import { formatDate } from "@/lib/userData";
+
+const allRoles: AdminRole[] = ["super_admin", "admin", "staff"];
 
 /** Pending / accepted / revoked / expired, for the badge beside an invite. */
 const inviteState = (invite: AdminInvite) => {
@@ -99,6 +102,20 @@ const Team = () => {
   }, [isSuperAdmin, load]);
 
   if (checked && !isSuperAdmin) return <Navigate to="/admin/quotes" replace />;
+
+  const onChangeRole = async (member: TeamMember, next: AdminRole) => {
+    const before = team;
+    setTeam((current) =>
+      current.map((item) => (item.userId === member.userId ? { ...item, role: next } : item))
+    );
+    try {
+      await setAdminRole(member.userId, next);
+      toast.success(`${member.name || member.email} is now ${roleLabel(next).toLowerCase()}.`);
+    } catch (issue) {
+      setTeam(before);
+      toast.error(issue instanceof Error ? issue.message : "Couldn't change that role.");
+    }
+  };
 
   const onInvite = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -280,13 +297,32 @@ const Team = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Badge
-                      variant={member.role === "super_admin" ? "default" : "secondary"}
-                      className="font-normal gap-1"
-                    >
-                      {member.role === "super_admin" && <ShieldCheck className="h-3 w-3" />}
-                      {roleLabel(member.role)}
-                    </Badge>
+                    {member.userId === user?.id ? (
+                      // Your own role is fixed here, so there is always a super admin.
+                      <Badge
+                        variant={member.role === "super_admin" ? "default" : "secondary"}
+                        className="font-normal gap-1"
+                      >
+                        {member.role === "super_admin" && <ShieldCheck className="h-3 w-3" />}
+                        {roleLabel(member.role)}
+                      </Badge>
+                    ) : (
+                      <Select
+                        value={member.role}
+                        onValueChange={(next) => void onChangeRole(member, next as AdminRole)}
+                      >
+                        <SelectTrigger className="h-8 w-[8.5rem] text-xs" aria-label={`Role for ${member.email}`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {allRoles.map((option) => (
+                            <SelectItem key={option} value={option} className="text-xs">
+                              {roleLabel(option)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <Button
                       type="button"
                       variant="ghost"
@@ -302,6 +338,14 @@ const Team = () => {
                 </li>
               ))}
             </ul>
+
+            <p className="text-xs text-muted-foreground mt-3 border-t border-border pt-3 leading-relaxed">
+              <strong className="font-medium text-foreground">Staff</strong> list cars, move orders
+              along and answer customers. <strong className="font-medium text-foreground">Admins</strong>{" "}
+              can also delete stock, orders and spam, and edit the website's contact details.{" "}
+              <strong className="font-medium text-foreground">Super admins</strong> can also manage
+              this team.
+            </p>
           </section>
 
           {/* Invitations ---------------------------------------------- */}
