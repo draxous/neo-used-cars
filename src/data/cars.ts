@@ -859,13 +859,55 @@ export interface MakeSummary {
   count: number;
 }
 
-/** Every make present in the given listing type, alphabetical, with unit counts. */
+/** One row of the `makes` table — every manufacturer we know, in stock or not. */
+export interface MakeInfo {
+  id: number;
+  /** As the source data spells it, e.g. "MERCEDES BENZ". */
+  name: string;
+  /** How the site spells it, e.g. "Mercedes-Benz". */
+  displayName: string;
+  country: string;
+  slug: string;
+}
+
+/**
+ * The make list, loaded at start-up by src/bootstrap.ts. Empty when the table
+ * isn't there, in which case every helper falls back to the spelling on the
+ * cars themselves — exactly how the site behaved before the table existed.
+ */
+let makeCatalog: MakeInfo[] = [];
+/** Both spellings' slugs point at the entry, so "Toyota" and "TOYOTA" agree. */
+let makesBySlug = new Map<string, MakeInfo>();
+
+export const setMakeCatalog = (next: MakeInfo[]) => {
+  makeCatalog = [...next].sort((a, b) => a.displayName.localeCompare(b.displayName));
+  makesBySlug = new Map();
+  makeCatalog.forEach((make) => {
+    makesBySlug.set(slugify(make.name), make);
+    makesBySlug.set(slugify(make.displayName), make);
+  });
+};
+
+/** Every known make, alphabetical — for pickers where any make is fair game. */
+export const getAllMakes = (): MakeInfo[] => makeCatalog;
+
+/** "TOYOTA" or "toyota" -> "Toyota"; unknown makes come back as written. */
+export const makeLabel = (make: string): string => makesBySlug.get(slugify(make))?.displayName ?? make;
+
+/**
+ * Every make present in the given listing type, alphabetical, with unit counts.
+ * Grouped by slug and named from the make list, so two spellings of one make
+ * on different cars show up once.
+ */
 export const getMakes = (type: ListingType = "stock"): MakeSummary[] => {
-  const counts = new Map<string, number>();
-  listingsOfType(type).forEach((car) => counts.set(car.make, (counts.get(car.make) ?? 0) + 1));
-  return [...counts.entries()]
-    .map(([name, count]) => ({ name, slug: slugify(name), count }))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const groups = new Map<string, MakeSummary>();
+  listingsOfType(type).forEach((car) => {
+    const slug = slugify(car.make);
+    const group = groups.get(slug) ?? { name: makeLabel(car.make), slug, count: 0 };
+    group.count += 1;
+    groups.set(slug, group);
+  });
+  return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
 };
 
 /** Models available for a given make slug. */
@@ -879,8 +921,16 @@ export const getModels = (makeSlug: string, type: ListingType = "stock"): MakeSu
     .sort((a, b) => a.name.localeCompare(b.name));
 };
 
-export const getMakeName = (makeSlug: string): string | undefined =>
-  cars.find((car) => slugify(car.make) === makeSlug)?.make;
+/**
+ * Display name for a make slug. Known makes resolve even with nothing in stock,
+ * so /stock-cars/ferrari reads "Used Ferrari" rather than a bare listing.
+ */
+export const getMakeName = (makeSlug: string): string | undefined => {
+  const known = makesBySlug.get(makeSlug);
+  if (known) return known.displayName;
+  const car = cars.find((item) => slugify(item.make) === makeSlug);
+  return car ? makeLabel(car.make) : undefined;
+};
 
 export const getModelName = (makeSlug: string, modelSlug: string): string | undefined =>
   cars.find(

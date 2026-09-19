@@ -14,8 +14,10 @@
 --   order_updates    the timeline shown under each order
 --   inquiry_replies  the team's answers to quotes and order messages
 --   site_settings    contact details and the announcement bar, one row
+--   makes            every manufacturer the site knows, in stock or not
 --
--- Vehicles are seeded separately, once, from supabase/seed_vehicles.sql.
+-- Vehicles and makes are seeded separately, once, from
+-- supabase/seed_vehicles.sql and supabase/seed_makes.sql.
 --
 -- Passwords, sessions and email confirmation stay in auth.users, managed by
 -- Supabase. Nothing here duplicates them.
@@ -1347,6 +1349,62 @@ create policy "Managers can edit site settings"
 
 
 -- ---------------------------------------------------------------------------
+-- makes
+-- ---------------------------------------------------------------------------
+--
+-- The list of manufacturers the site knows about, whether or not any are in
+-- stock right now. The browse lists use it for how a make is spelled; the quote
+-- form and the admin vehicle editor offer the whole list.
+--
+-- `name` is kept exactly as the source data spells it (upper case, e.g.
+-- "MERCEDES BENZ") so future imports can be matched on it; `display_name` is
+-- what visitors read ("Mercedes-Benz"). Vehicles are matched to a make by
+-- slug, so "Toyota" on a car and "TOYOTA" here are the same make.
+--
+-- Filled once from supabase/seed_makes.sql.
+
+create table if not exists public.makes (
+  id           integer generated always as identity primary key,
+  created_at   timestamptz not null default now(),
+  name         text not null unique,
+  display_name text not null,
+  -- Country of origin, as supplied: "JAPAN", "GERMANY", "OTHER"...
+  country      text not null default 'OTHER',
+
+  constraint makes_name_len    check (char_length(name) between 1 and 60),
+  constraint makes_display_len check (char_length(display_name) between 1 and 60),
+  constraint makes_country_len check (char_length(country) between 1 and 40)
+);
+
+alter table public.makes enable row level security;
+
+drop policy if exists "Anyone can read makes" on public.makes;
+create policy "Anyone can read makes"
+  on public.makes for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "Admins can add makes" on public.makes;
+create policy "Admins can add makes"
+  on public.makes for insert
+  to authenticated
+  with check (public.is_admin());
+
+drop policy if exists "Admins can edit makes" on public.makes;
+create policy "Admins can edit makes"
+  on public.makes for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Managers can delete makes" on public.makes;
+create policy "Managers can delete makes"
+  on public.makes for delete
+  to authenticated
+  using (public.is_manager());
+
+
+-- ---------------------------------------------------------------------------
 -- Data API grants
 -- ---------------------------------------------------------------------------
 --
@@ -1373,6 +1431,8 @@ grant select, insert, delete         on public.order_updates   to authenticated;
 grant select, insert                 on public.inquiry_replies to authenticated;
 grant select                         on public.site_settings   to anon;
 grant select, update                 on public.site_settings   to authenticated;
+grant select                         on public.makes           to anon;
+grant select, insert, update, delete on public.makes           to authenticated;
 
 -- New orders draw their number from this sequence.
 grant usage on sequence public.order_number_seq to authenticated;

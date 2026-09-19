@@ -21,6 +21,7 @@ import {
   yearRanges,
   phoneCountries,
 } from "@/config/site";
+import { getAllMakes } from "@/data/cars";
 import { useAuth } from "@/lib/auth";
 import { saveQuoteRequest } from "@/lib/quotes";
 import { useUserData } from "@/lib/userData";
@@ -340,10 +341,18 @@ const InquiryForm = ({
           <Input
             id="inquiry-make"
             placeholder="Toyota"
+            list="inquiry-makes"
+            autoComplete="off"
             aria-invalid={Boolean(errors.make)}
             className="mt-1.5"
             {...register("make")}
           />
+          {/* Suggestions, not a limit: a make we haven't listed can still be typed. */}
+          <datalist id="inquiry-makes">
+            {getAllMakes().map((make) => (
+              <option key={make.id} value={make.displayName} />
+            ))}
+          </datalist>
           <FieldError>{errors.make?.message}</FieldError>
         </div>
 

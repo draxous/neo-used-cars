@@ -1,14 +1,15 @@
 /**
- * Loads what the whole site renders from — the stock list and the contact
- * details — before React mounts, so every page can keep reading them
+ * Loads what the whole site renders from — the stock list, the make list and
+ * the contact details — before React mounts, so every page can keep reading them
  * synchronously from src/data/cars.ts and src/config/site.ts.
  *
  * Nothing here is allowed to stop the site from opening. If Supabase isn't
  * configured, is unreachable, or the tables haven't been created yet, the
  * bundled defaults stay in place and the reason goes to the console.
  */
-import { setInventory } from "@/data/cars";
+import { setInventory, setMakeCatalog } from "@/data/cars";
 import { fetchInventory } from "@/lib/inventory";
+import { fetchMakes } from "@/lib/makes";
 import { applySiteSettings, fetchSiteSettings } from "@/lib/siteSettings";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -26,8 +27,9 @@ const withTimeout = <T,>(promise: Promise<T>): Promise<T> =>
 export const bootstrap = async (): Promise<void> => {
   if (!isSupabaseConfigured) return;
 
-  const [inventory, settings] = await Promise.allSettled([
+  const [inventory, makes, settings] = await Promise.allSettled([
     withTimeout(fetchInventory()),
+    withTimeout(fetchMakes()),
     withTimeout(fetchSiteSettings()),
   ]);
 
@@ -35,6 +37,12 @@ export const bootstrap = async (): Promise<void> => {
     setInventory(inventory.value);
   } else {
     console.warn("[neo] Showing the bundled stock list:", inventory.reason);
+  }
+
+  if (makes.status === "fulfilled") {
+    setMakeCatalog(makes.value);
+  } else {
+    console.warn("[neo] Naming makes from the stock list:", makes.reason);
   }
 
   if (settings.status === "fulfilled") {

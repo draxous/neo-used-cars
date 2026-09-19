@@ -34,6 +34,8 @@ import {
   Transmission,
   carPath,
   collections,
+  getAllMakes,
+  makeLabel,
   setInventory,
 } from "@/data/cars";
 import {
@@ -309,7 +311,8 @@ const VehicleEditor = () => {
 
   const suggestions = useMemo(
     () => ({
-      makes: distinct(all, (car) => car.make),
+      // The full make list, plus any spelling already on a car that isn't in it.
+      makes: [...new Set([...getAllMakes().map((make) => make.displayName), ...distinct(all, (car) => makeLabel(car.make))])].sort(),
       models: distinct(
         all.filter((car) => car.make.toLowerCase() === draft?.make.trim().toLowerCase()),
         (car) => car.model
@@ -522,7 +525,7 @@ const VehicleEditor = () => {
 
       <Section title="Vehicle">
         <div className="grid sm:grid-cols-3 gap-4">
-          {field("make", "Make", { list: "dl-makes", placeholder: "Toyota" })}
+          {field("make", "Make", { list: "dl-makes", placeholder: "Toyota", autoComplete: "off" })}
           {field("model", "Model", { list: "dl-models", placeholder: "Land Cruiser Prado" })}
           {field("grade", "Grade / trim (optional)", { placeholder: "TX L Package" })}
           {field("year", "Year", { inputMode: "numeric" })}
