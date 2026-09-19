@@ -16,7 +16,7 @@ const ANY = "any";
 
 const SearchFilters = () => {
   const navigate = useNavigate();
-  const makes = useMemo(getMakes, []);
+  const makes = useMemo(() => getMakes("stock", { all: true }), []);
   const years = useMemo(getYearRange, []);
 
   const [make, setMake] = useState(ANY);
@@ -63,7 +63,8 @@ const SearchFilters = () => {
               <SelectItem value={ANY}>All Makes</SelectItem>
               {makes.map((item) => (
                 <SelectItem key={item.slug} value={item.slug}>
-                  {item.name} ({item.count})
+                  {item.name}
+                  {item.count > 0 && ` (${item.count})`}
                 </SelectItem>
               ))}
             </SelectContent>

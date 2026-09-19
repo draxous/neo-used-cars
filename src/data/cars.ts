@@ -895,12 +895,25 @@ export const getAllMakes = (): MakeInfo[] => makeCatalog;
 export const makeLabel = (make: string): string => makesBySlug.get(slugify(make))?.displayName ?? make;
 
 /**
- * Every make present in the given listing type, alphabetical, with unit counts.
+ * Makes with their unit counts in the given listing type, alphabetical.
  * Grouped by slug and named from the make list, so two spellings of one make
  * on different cars show up once.
+ *
+ * By default only makes with something listed. `all` adds every make in the
+ * `makes` table too, at a count of 0 — for browse and search lists, where a
+ * make we don't hold leads to "we'll source it from auction".
  */
-export const getMakes = (type: ListingType = "stock"): MakeSummary[] => {
+export const getMakes = (
+  type: ListingType = "stock",
+  { all = false }: { all?: boolean } = {}
+): MakeSummary[] => {
   const groups = new Map<string, MakeSummary>();
+  if (all) {
+    makeCatalog.forEach((make) => {
+      const slug = slugify(make.displayName);
+      groups.set(slug, { name: make.displayName, slug, count: 0 });
+    });
+  }
   listingsOfType(type).forEach((car) => {
     const slug = slugify(car.make);
     const group = groups.get(slug) ?? { name: makeLabel(car.make), slug, count: 0 };

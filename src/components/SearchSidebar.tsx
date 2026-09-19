@@ -131,7 +131,7 @@ interface SearchSidebarProps {
 }
 
 const SearchSidebar = ({ state, onChange, onReset, bare = false }: SearchSidebarProps) => {
-  const makes = useMemo(() => getMakes(state.listingType), [state.listingType]);
+  const makes = useMemo(() => getMakes(state.listingType, { all: true }), [state.listingType]);
   const years = useMemo(getYearRange, []);
   const models = state.make ? getModels(state.make, state.listingType) : [];
   const filters = toFilters(state);
@@ -226,7 +226,8 @@ const SearchSidebar = ({ state, onChange, onReset, bare = false }: SearchSidebar
                 <SelectItem value={ANY}>All Makes</SelectItem>
                 {makes.map((make) => (
                   <SelectItem key={make.slug} value={make.slug}>
-                    {make.name} ({make.count})
+                    {make.name}
+                    {make.count > 0 && ` (${make.count})`}
                   </SelectItem>
                 ))}
               </SelectContent>
