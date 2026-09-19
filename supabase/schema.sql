@@ -1344,3 +1344,56 @@ create policy "Managers can edit site settings"
   to authenticated
   using (public.is_manager())
   with check (public.is_manager());
+
+
+-- ---------------------------------------------------------------------------
+-- Data API grants
+-- ---------------------------------------------------------------------------
+--
+-- Row-level security decides WHICH rows a role may touch, but a role first
+-- needs permission on the table at all. Older Supabase projects granted that
+-- to anon and authenticated automatically; this one doesn't, and without these
+-- lines every request fails with "permission denied for table ...".
+--
+-- Each grant is only as wide as the policies above make use of, so the
+-- policies stay the thing that decides what anyone actually sees. admin_invites
+-- is left out on purpose: it is reached only through its functions.
+
+grant usage on schema public to anon, authenticated;
+
+grant select, update                 on public.profiles        to authenticated;
+grant insert                         on public.quotes          to anon;
+grant select, insert, update, delete on public.quotes          to authenticated;
+grant select, insert, update, delete on public.order_messages  to authenticated;
+grant select                         on public.user_roles      to authenticated;
+grant select                         on public.vehicles        to anon;
+grant select, insert, update, delete on public.vehicles        to authenticated;
+grant select, insert, update, delete on public.orders          to authenticated;
+grant select, insert, delete         on public.order_updates   to authenticated;
+grant select, insert                 on public.inquiry_replies to authenticated;
+grant select                         on public.site_settings   to anon;
+grant select, update                 on public.site_settings   to authenticated;
+
+-- New orders draw their number from this sequence.
+grant usage on sequence public.order_number_seq to authenticated;
+
+-- Functions are callable by default, but say so explicitly for the ones the
+-- site relies on, in case that default is ever tightened too. Each re-checks
+-- the caller's role inside.
+grant execute on function public.is_admin()                  to anon, authenticated;
+grant execute on function public.is_super_admin()            to anon, authenticated;
+grant execute on function public.is_manager()                to anon, authenticated;
+grant execute on function public.admin_invite_details(text)  to anon, authenticated;
+grant execute on function public.admin_order_messages()      to authenticated;
+grant execute on function public.create_admin_invite(text, text) to authenticated;
+grant execute on function public.accept_admin_invite(text)   to authenticated;
+grant execute on function public.list_admin_invites()        to authenticated;
+grant execute on function public.revoke_admin_invite(uuid)   to authenticated;
+grant execute on function public.list_admin_team()           to authenticated;
+grant execute on function public.revoke_admin_role(uuid)     to authenticated;
+grant execute on function public.set_admin_role(uuid, text)  to authenticated;
+grant execute on function public.admin_create_order(uuid, text, text, integer, text, timestamptz, boolean) to authenticated;
+grant execute on function public.admin_set_order_stage(text, text, text) to authenticated;
+grant execute on function public.admin_list_orders()         to authenticated;
+grant execute on function public.admin_list_customers()      to authenticated;
+grant execute on function public.admin_inquiry_replies()     to authenticated;
