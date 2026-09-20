@@ -3,11 +3,33 @@ import { Car as CarIcon, Layers } from "lucide-react";
 import { collections, getMakes } from "@/data/cars";
 import { cn } from "@/lib/utils";
 
-const MakersSidebar = () => {
-  // What we hold first, so a buyer doesn't scroll past empty makes to find it.
-  const makes = getMakes("stock", { all: true }).sort(
-    (a, b) => Number(b.count > 0) - Number(a.count > 0)
-  );
+interface MakersSidebarProps {
+  /**
+   * Show only this many makes, the ones with the most stock. Without it the
+   * full list is shown — every make we know, whether we hold one or not.
+   */
+  limit?: number;
+  /**
+   * Where a make leads. "search" runs a search filtered to it, which is what
+   * picking the make from the search box does; "stock" opens its stock page.
+   */
+  linkTo?: "stock" | "search";
+}
+
+const MakersSidebar = ({ limit, linkTo = "stock" }: MakersSidebarProps) => {
+  const makes = limit
+    ? // Pick the biggest, then list them alphabetically like the make dropdown.
+      [...getMakes()]
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+        .slice(0, limit)
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : // What we hold first, so a buyer doesn't scroll past empty makes to find it.
+      getMakes("stock", { all: true }).sort(
+        (a, b) => Number(b.count > 0) - Number(a.count > 0)
+      );
+
+  const href = (slug: string) =>
+    linkTo === "search" ? `/search?make=${slug}` : `/stock-cars/${slug}`;
 
   return (
     <aside className="space-y-6">
@@ -21,12 +43,12 @@ const MakersSidebar = () => {
             Browse by <span className="text-primary">Make</span>
           </h3>
         </div>
-        {/* A long list once every make is in: scroll it rather than the page. */}
-        <ul className="space-y-1 max-h-[28rem] overflow-y-auto pr-1 -mr-1">
+        {/* The full list is long: scroll it rather than the page. */}
+        <ul className={cn("space-y-1", !limit && "max-h-[28rem] overflow-y-auto pr-1 -mr-1")}>
           {makes.map((make) => (
             <li key={make.slug}>
               <Link
-                to={`/stock-cars/${make.slug}`}
+                to={href(make.slug)}
                 className="flex items-center gap-3 px-3 py-2 text-sm text-foreground hover:text-primary hover:bg-secondary rounded-md transition-all"
               >
                 <CarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />

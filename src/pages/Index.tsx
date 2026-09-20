@@ -22,7 +22,8 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-[280px_1fr] gap-8">
           <div className="hidden lg:block">
-            <MakersSidebar />
+            {/* Top makes in stock; each one runs a search filtered to it. */}
+            <MakersSidebar limit={15} linkTo="search" />
           </div>
           <div>
             <NewArrivals />
