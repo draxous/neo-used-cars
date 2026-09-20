@@ -15,6 +15,7 @@
 --   inquiry_replies  the team's answers to quotes and order messages
 --   site_settings    contact details and the announcement bar, one row
 --   makes            every manufacturer the site knows, in stock or not
+--   car_requests     buy, bid and service requests from a vehicle page
 --
 -- Vehicles and makes are seeded separately, once, from
 -- supabase/seed_vehicles.sql and supabase/seed_makes.sql.
@@ -1405,6 +1406,112 @@ create policy "Managers can delete makes"
 
 
 -- ---------------------------------------------------------------------------
+-- car_requests
+-- ---------------------------------------------------------------------------
+--
+-- What a signed-in customer asks for from a vehicle page: to buy a unit
+-- outright, to bid on a lot up to a maximum, an auction sheet translation, an
+-- inspection, or simply a question. The team works through them at
+-- /admin/requests and turns a "buy" into an order once payment is agreed.
+--
+-- Signed out, the page still shows the inquiry form, which writes to quotes.
+--
+-- car_label is a snapshot so the request still reads correctly if the listing
+-- is edited or removed; car_id goes null rather than blocking the delete.
+
+create table if not exists public.car_requests (
+  id          uuid primary key default gen_random_uuid(),
+  created_at  timestamptz not null default now(),
+  user_id     uuid not null references auth.users on delete cascade,
+  car_id      text references public.vehicles on update cascade on delete set null,
+  car_label   text not null,
+  kind        text not null,
+  -- Only on a bid: the most the customer will pay, in whole USD.
+  max_bid_usd integer,
+  message     text,
+  status      text not null default 'new',
+
+  constraint car_requests_kind check (kind in ('buy', 'bid', 'translation', 'inspection', 'inquiry')),
+  constraint car_requests_status check (status in ('new', 'open', 'done', 'closed')),
+  constraint car_requests_label_len check (char_length(car_label) between 1 and 160),
+  constraint car_requests_message_len check (message is null or char_length(message) <= 2000),
+  constraint car_requests_bid check (max_bid_usd is null or max_bid_usd >= 0),
+  -- A bid without a maximum is not a bid we can act on.
+  constraint car_requests_bid_needed check (kind <> 'bid' or max_bid_usd is not null)
+);
+
+create index if not exists car_requests_user_idx on public.car_requests (user_id, created_at desc);
+create index if not exists car_requests_car_idx on public.car_requests (car_id);
+
+alter table public.car_requests enable row level security;
+
+drop policy if exists "Customers can ask for themselves" on public.car_requests;
+create policy "Customers can ask for themselves"
+  on public.car_requests for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Customers can read their own requests" on public.car_requests;
+create policy "Customers can read their own requests"
+  on public.car_requests for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "Admins can read every car request" on public.car_requests;
+create policy "Admins can read every car request"
+  on public.car_requests for select
+  to authenticated
+  using (public.is_admin());
+
+drop policy if exists "Admins can triage car requests" on public.car_requests;
+create policy "Admins can triage car requests"
+  on public.car_requests for update
+  to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
+
+drop policy if exists "Managers can delete car requests" on public.car_requests;
+create policy "Managers can delete car requests"
+  on public.car_requests for delete
+  to authenticated
+  using (public.is_manager());
+
+-- The /admin/requests list, with the customer's live name and address.
+create or replace function public.admin_car_requests()
+returns table (
+  id             uuid,
+  created_at     timestamptz,
+  user_id        uuid,
+  car_id         text,
+  car_label      text,
+  kind           text,
+  max_bid_usd    integer,
+  message        text,
+  status         text,
+  customer_name  text,
+  customer_email text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    r.id, r.created_at, r.user_id, r.car_id, r.car_label, r.kind,
+    r.max_bid_usd, r.message, r.status,
+    coalesce(p.name, '') as customer_name,
+    u.email::text        as customer_email
+  from public.car_requests r
+  left join public.profiles p on p.id = r.user_id
+  left join auth.users     u on u.id = r.user_id
+  where public.is_admin()
+  order by r.created_at desc;
+$$;
+
+revoke all on function public.admin_car_requests() from anon;
+
+
+-- ---------------------------------------------------------------------------
 -- Data API grants
 -- ---------------------------------------------------------------------------
 --
@@ -1431,6 +1538,7 @@ grant select, insert, delete         on public.order_updates   to authenticated;
 grant select, insert                 on public.inquiry_replies to authenticated;
 grant select                         on public.site_settings   to anon;
 grant select, update                 on public.site_settings   to authenticated;
+grant select, insert, update, delete on public.car_requests    to authenticated;
 grant select                         on public.makes           to anon;
 grant select, insert, update, delete on public.makes           to authenticated;
 
@@ -1457,3 +1565,4 @@ grant execute on function public.admin_set_order_stage(text, text, text) to auth
 grant execute on function public.admin_list_orders()         to authenticated;
 grant execute on function public.admin_list_customers()      to authenticated;
 grant execute on function public.admin_inquiry_replies()     to authenticated;
+grant execute on function public.admin_car_requests()        to authenticated;

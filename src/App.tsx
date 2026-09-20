@@ -37,6 +37,7 @@ const AdminOverview = lazy(() => import("./pages/admin/Overview"));
 const AdminInventory = lazy(() => import("./pages/admin/Inventory"));
 const AdminVehicleEditor = lazy(() => import("./pages/admin/VehicleEditor"));
 const AdminOrders = lazy(() => import("./pages/admin/Orders"));
+const AdminRequests = lazy(() => import("./pages/admin/Requests"));
 const AdminCustomers = lazy(() => import("./pages/admin/Customers"));
 const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const AdminQuotes = lazy(() => import("./pages/admin/Quotes"));
@@ -116,6 +117,7 @@ const App = () => (
                 <Route path="/admin/inventory/new" element={<AdminVehicleEditor />} />
                 <Route path="/admin/inventory/:id" element={<AdminVehicleEditor />} />
                 <Route path="/admin/orders" element={<AdminOrders />} />
+                <Route path="/admin/requests" element={<AdminRequests />} />
                 <Route path="/admin/customers" element={<AdminCustomers />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/admin/quotes" element={<AdminQuotes />} />

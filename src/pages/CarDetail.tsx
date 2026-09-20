@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import CarGrid from "@/components/CarGrid";
+import CarPurchasePanel from "@/components/CarPurchasePanel";
 import InquiryForm from "@/components/InquiryForm";
 import FavoriteButton from "@/components/FavoriteButton";
 import NotFound from "./NotFound";
@@ -26,9 +27,11 @@ import {
   isNewArrival,
   slugify,
 } from "@/data/cars";
+import { useAuth } from "@/lib/auth";
 
 const CarDetail = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const car = id ? getCarById(id) : undefined;
   const [activeImage, setActiveImage] = useState(0);
 
@@ -170,54 +173,61 @@ const CarDetail = () => {
             </div>
           </div>
 
-          {/* Sticky price + inquiry panel */}
+          {/* Sticky price panel. Signed in, you can act on the car directly;
+              signed out, it's the price and an inquiry form. */}
           <aside className="lg:sticky lg:top-28 space-y-4">
-            <div className="bg-card rounded-xl card-shadow-hover p-5">
-              {lot ? (
-                <>
-                  <p className="text-sm text-muted-foreground">Auction estimate</p>
-                  <p className="font-display text-3xl font-bold text-primary mt-1">
-                    {formatEstimate(lot)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {lot.house} · lot {lot.lotNumber} · {formatAuctionDate(lot.date)}. You set the
-                    maximum; we never bid above it.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-sm text-muted-foreground">FOB {car.location}</p>
-                  <p className="font-display text-4xl font-bold text-primary mt-1">
-                    {formatPrice(car.priceUsd)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Shipping and insurance quoted separately for your port.
-                  </p>
-                </>
-              )}
+            {user ? (
+              <CarPurchasePanel car={car} userId={user.id} />
+            ) : (
+              <>
+              <div className="bg-card rounded-xl card-shadow-hover p-5">
+                {lot ? (
+                  <>
+                    <p className="text-sm text-muted-foreground">Auction estimate</p>
+                    <p className="font-display text-3xl font-bold text-primary mt-1">
+                      {formatEstimate(lot)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {lot.house} · lot {lot.lotNumber} · {formatAuctionDate(lot.date)}. You set the
+                      maximum; we never bid above it.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">FOB {car.location}</p>
+                    <p className="font-display text-4xl font-bold text-primary mt-1">
+                      {formatPrice(car.priceUsd)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Shipping and insurance quoted separately for your port.
+                    </p>
+                  </>
+                )}
 
-              <FavoriteButton car={car} variant="inline" label className="w-full mt-4" />
+                <FavoriteButton car={car} variant="inline" label className="w-full mt-4" />
 
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border text-sm text-foreground">
-                <ShieldCheck className="h-5 w-5 text-accent flex-shrink-0" />
-                <span>
-                  Inspected in Japan
-                  {car.condition && ` — auction grade ${car.condition}`}
-                </span>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border text-sm text-foreground">
+                  <ShieldCheck className="h-5 w-5 text-accent flex-shrink-0" />
+                  <span>
+                    Inspected in Japan
+                    {car.condition && ` — auction grade ${car.condition}`}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <div className="bg-card rounded-xl card-shadow-hover p-5">
-              <h2 className="font-display font-bold text-xl text-foreground mb-1">
-                {lot ? "Bid on this lot" : "Inquire about this car"}
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                {lot ? "Lot" : "Stock"}{" "}
-                <span className="font-mono">{lot ? lot.lotNumber : car.id}</span> — we reply within
-                24 hours.
-              </p>
-              <InquiryForm variant="compact" defaultMake={car.make} defaultModel={car.model} />
-            </div>
+              <div className="bg-card rounded-xl card-shadow-hover p-5">
+                <h2 className="font-display font-bold text-xl text-foreground mb-1">
+                  {lot ? "Bid on this lot" : "Inquire about this car"}
+                </h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {lot ? "Lot" : "Stock"}{" "}
+                  <span className="font-mono">{lot ? lot.lotNumber : car.id}</span> — we reply within
+                  24 hours.
+                </p>
+                <InquiryForm variant="compact" defaultMake={car.make} defaultModel={car.model} />
+              </div>
+              </>
+            )}
           </aside>
         </div>
 

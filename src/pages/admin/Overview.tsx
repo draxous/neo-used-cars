@@ -10,6 +10,7 @@ import {
   MessagesSquare,
   Plus,
   Ship,
+  ShoppingCart,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   listQuotes,
 } from "@/lib/admin";
 import { useAuth } from "@/lib/auth";
+import { AdminCarRequest, listCarRequestsForAdmin, requestLabels } from "@/lib/carRequests";
 import { fetchInventory } from "@/lib/inventory";
 import { AdminOrder, listOrdersForAdmin } from "@/lib/orders";
 import { formatDate, shipmentStages, stageIndex, timeAgo } from "@/lib/userData";
@@ -30,6 +32,7 @@ interface Snapshot {
   quotes: AdminQuote[];
   messages: AdminOrderMessage[];
   orders: AdminOrder[];
+  requests: AdminCarRequest[];
   cars: Car[];
   customerCount: number;
   newCustomers: number;
@@ -54,11 +57,16 @@ const Overview = () => {
       listOrdersForAdmin(),
       fetchInventory(),
       listCustomers(),
-    ]).then(([quotes, messages, orders, cars, customers]) => {
+      listCarRequestsForAdmin(),
+    ]).then(([quotes, messages, orders, cars, customers, requests]) => {
       const value = <T,>(result: PromiseSettledResult<T>, fallback: T) =>
         result.status === "fulfilled" ? result.value : fallback;
 
-      if ([quotes, messages, orders, cars, customers].some((result) => result.status === "rejected")) {
+      if (
+        [quotes, messages, orders, cars, customers, requests].some(
+          (result) => result.status === "rejected"
+        )
+      ) {
         setError("Some figures couldn't load. If this is a new setup, run supabase/schema.sql.");
       }
 
@@ -67,6 +75,7 @@ const Overview = () => {
         quotes: value(quotes, []),
         messages: value(messages, []),
         orders: value(orders, []),
+        requests: value(requests, []),
         cars: value(cars, []),
         customerCount: people.length,
         newCustomers: people.filter((person) => Date.now() - new Date(person.createdAt).getTime() < 30 * DAY)
@@ -85,6 +94,7 @@ const Overview = () => {
   }
 
   const newQuotes = data.quotes.filter((quote) => quote.status === "new");
+  const newRequests = data.requests.filter((request) => request.status === "new");
   const newMessages = data.messages.filter((item) => item.status === "new" || item.status === "open");
   const inTransit = data.orders.filter((order) => order.stage !== "arrived");
   const listed = data.cars.filter((car) => car.published !== false && car.status !== "sold");
@@ -96,6 +106,13 @@ const Overview = () => {
   const stats = [
     { label: "New quote requests", value: newQuotes.length, icon: Inbox, href: "/admin/quotes", alert: newQuotes.length > 0 },
     { label: "Messages to answer", value: newMessages.length, icon: MessagesSquare, href: "/admin/messages", alert: newMessages.length > 0 },
+    {
+      label: "Buy & bid requests",
+      value: newRequests.length,
+      icon: ShoppingCart,
+      href: "/admin/requests",
+      alert: newRequests.length > 0,
+    },
     { label: "Orders on the way", value: inTransit.length, icon: Ship, href: "/admin/orders" },
     { label: "Cars listed", value: listed.length, icon: CarIcon, href: "/admin/inventory" },
     {
@@ -121,6 +138,13 @@ const Overview = () => {
       title: item.customerName || item.customerEmail,
       detail: `${item.topic} · ${item.orderId}`,
       href: "/admin/messages",
+    })),
+    ...newRequests.map((request) => ({
+      id: request.id,
+      at: request.createdAt,
+      title: request.customerName || request.customerEmail,
+      detail: `${requestLabels[request.kind]} · ${request.carLabel}`,
+      href: "/admin/requests",
     })),
   ]
     .sort((a, b) => b.at.localeCompare(a.at))
@@ -158,7 +182,7 @@ const Overview = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map((stat) => (
           <Link
             key={stat.label}

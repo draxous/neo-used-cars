@@ -7,10 +7,11 @@ import {
   Inbox,
   LayoutDashboard,
   MessagesSquare,
-  Settings,
   Loader2,
+  Settings,
   ShieldCheck,
   Ship,
+  ShoppingCart,
   Users,
 } from "lucide-react";
 import Logo from "@/components/Logo";
@@ -31,6 +32,7 @@ const sections: Section[] = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, end: true },
   { to: "/admin/inventory", label: "Inventory", icon: Car },
   { to: "/admin/orders", label: "Orders", icon: Ship },
+  { to: "/admin/requests", label: "Buy & bid", icon: ShoppingCart },
   { to: "/admin/quotes", label: "Quote requests", icon: Inbox },
   { to: "/admin/messages", label: "Order messages", icon: MessagesSquare },
   { to: "/admin/customers", label: "Customers", icon: Contact },
