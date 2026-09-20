@@ -10,6 +10,7 @@ import {
   LogOut,
   MessageSquareQuote,
   Search,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useIsAdmin } from "@/lib/admin";
 import { useAuth } from "@/lib/auth";
 import { useUserData } from "@/lib/userData";
 import { cn } from "@/lib/utils";
@@ -30,6 +32,8 @@ import Logo from "./Logo";
  */
 const DashboardLayout = () => {
   const { user, signOut } = useAuth();
+  // Signing in the usual way lands here, so the team needs a way through.
+  const { isAdmin } = useIsAdmin();
   const { favorites, purchases } = useUserData();
   const { pathname } = useLocation();
 
@@ -55,6 +59,14 @@ const DashboardLayout = () => {
             <Logo to="/dashboard/home" size="sm" tagline="My account" className="gap-2.5" />
 
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button asChild variant="outline" size="sm" className="hidden sm:flex gap-1.5">
+                  <Link to="/admin">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    Admin panel
+                  </Link>
+                </Button>
+              )}
               <Button asChild variant="ghost" size="sm" className="hidden sm:flex gap-1.5 text-muted-foreground">
                 <Link to="/">
                   <ArrowLeft className="h-4 w-4" />
@@ -84,6 +96,14 @@ const DashboardLayout = () => {
                     <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                   </div>
                   <DropdownMenuSeparator />
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin" className="gap-2 cursor-pointer">
+                        <ShieldCheck className="h-4 w-4 text-primary" />
+                        Admin panel
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link to="/inquiry" className="gap-2 cursor-pointer">
                       <MessageSquareQuote className="h-4 w-4" />
