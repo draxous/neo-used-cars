@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 import InquiryForm from "@/components/InquiryForm";
 import { siteConfig } from "@/config/site";
 import { formatAuctionDate, getCarById } from "@/data/cars";
+import SEOHead from "@/components/SEOHead";
 
 const Inquiry = () => {
   // Arriving from a stock card ("Inquire") or an auction lot ("Bid for me").
@@ -12,9 +13,14 @@ const Inquiry = () => {
   const car = reference ? getCarById(reference) : undefined;
   const lot = car?.auction;
 
-
   return (
     <Layout>
+      <SEOHead
+        title="Contact Us & Request CIF Quote | Auto Imports from Japan - Neo Trading"
+        description="Request a free CIF shipping quote or ask about auction bidding and auto imports from Japan. Fast 24-hour response from our Tokyo office."
+        keywords="contact neo trading, car import quote japan, auto imports from japan quote, japanese vehicle export inquiry"
+        canonicalUrl="/inquiry"
+      />
       <section className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-10">
           <h1 className="font-display text-3xl lg:text-4xl font-bold text-foreground">

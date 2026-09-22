@@ -1,0 +1,31 @@
+# Neo Trading — Auto Imports from Japan
+> Premier Japanese Used Car Exporter & Direct Auction Agent based in Tokyo, Japan.
+
+Website: https://neojapancars.com/
+Contact: neollcjp@gmail.com | +81-80-9718-5080
+Headquarters: Neo LLC, Higashikomatsugawa 1-12-1, Edogawa, Tokyo, Japan
+
+## What We Do
+Neo Trading Co., Ltd specializes in direct **auto imports from Japan** for individual buyers, car collectors, dealerships, and commercial fleets worldwide. We provide direct access to over 150+ Japanese auto auction halls (USS, TAA, CAA, JU, etc.) and vetted Japanese dealer inventory.
+
+## Core Capabilities
+- **Direct Japanese Auction Sourcing**: Over 100,000+ vehicles available weekly. We translate official Japanese auction inspection sheets and bid on your behalf.
+- **Physical Stock Inventory**: Verified Japanese used cars ready for immediate export.
+- **Pre-Shipment Inspections**: Full mechanical inspections and certification (JEVIC, JAAI, EAA, QISJ) according to destination country standards.
+- **Documentation & Deregistration**: Official Japanese Export Certificate with English translation, original Bill of Lading, and commercial invoice.
+- **Worldwide Shipping**: RoRo (Roll-on/Roll-off) and Container ocean freight to North America, Europe, Australia, New Zealand, East & Southern Africa, and the Caribbean.
+
+## Key Pages & Resources
+- [Stock Inventory](https://neojapancars.com/stock-cars): Ready-to-export Japanese used vehicles with FOB pricing.
+- [Auction Sourcing](https://neojapancars.com/auctions): How to buy vehicles directly from live Japanese auctions.
+- [Auto Import Guide & Resources](https://neojapancars.com/resources): Comprehensive guides on import regulations, FOB vs CIF pricing, auction sheet grading, and shipping.
+- [Frequently Asked Questions](https://neojapancars.com/faq): Answers to payment methods, shipping durations, country rules, and paperwork.
+- [Vehicle Inquiry & Custom Sourcing](https://neojapancars.com/inquiry): Request a personalized CIF quote to your destination port.
+
+## Popular Vehicle Categories
+- **JDM Sports & Collector Cars**: Nissan Skyline GT-R (R32, R33, R34), Mazda RX-7 (FD3S), Toyota Supra (JZA80), Subaru Impreza WRX STI, Mitsubishi Lancer Evolution.
+- **Kei Trucks & Vans (4WD)**: Daihatsu Hijet, Suzuki Carry, Subaru Sambar, Honda Acty.
+- **SUVs & Off-Roaders**: Toyota Land Cruiser, Land Cruiser Prado, Hilux Surf, Suzuki Jimny, Nissan Safari/Patrol.
+- **Commercial & Passenger**: Toyota HiAce vans, Toyota Alphard / Vellfire, hybrid cars (Prius, Aqua).
+
+For complete documentation and guides, see [Full LLMs Documentation](https://neojapancars.com/llms-full.txt).

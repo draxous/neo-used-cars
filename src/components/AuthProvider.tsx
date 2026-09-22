@@ -9,7 +9,7 @@ import {
   RegisterValues,
   toAccount,
 } from "@/lib/auth";
-import { authRedirectTo, setRemember, supabase } from "@/lib/supabase";
+import { authRedirectTo, setRemember, stashResetRedirect, supabase } from "@/lib/supabase";
 
 const NOT_CONFIGURED =
   "Accounts aren't connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env file.";
@@ -121,7 +121,11 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     void supabase?.auth.signOut();
   }, []);
 
-  const requestPasswordReset = useCallback(async (email: string) => {
+  const requestPasswordReset = useCallback(async (email: string, redirect?: string | null) => {
+    // Put this down before the email goes out: /reset-password opens in a new
+    // tab from the inbox and has no other way to learn where we were headed.
+    stashResetRedirect(redirect ?? null);
+
     const { error } = await client().auth.resetPasswordForEmail(email.trim(), {
       redirectTo: authRedirectTo("/reset-password"),
     });

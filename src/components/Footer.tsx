@@ -13,18 +13,18 @@ const Footer = () => {
           <div className="sm:col-span-2">
             <Logo tone="onDark" size="md" className="mb-4" />
             <p className="text-primary-foreground/80 text-sm leading-relaxed mb-4">
-              Neo Trading Co., Ltd specializes in exporting high-quality Japanese used vehicles 
-              to customers worldwide. With years of experience and a commitment to excellence, 
-              we ensure every customer receives the best value and service.
+              Neo Trading Co., Ltd is a premier Japanese vehicle exporter based in Tokyo, Japan, 
+              specializing in direct auto imports from Japan, live auction bidding on 150+ auction houses, 
+              certified pre-shipment inspections, and global shipping to over 80 countries.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="Facebook">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="Instagram">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors">
+              <a href="#" className="w-10 h-10 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary-foreground/20 transition-colors" aria-label="YouTube">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
@@ -32,14 +32,14 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-display font-semibold mb-4">Quick Links</h4>
+            <h4 className="font-display font-semibold mb-4">Auto Imports</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/80">
-              <li><Link to="/stock-cars" className="hover:text-accent transition-colors">Stock List</Link></li>
-              <li><Link to="/auctions" className="hover:text-accent transition-colors">Auctions</Link></li>
-              <li><Link to="/about-us" className="hover:text-accent transition-colors">About Us</Link></li>
-              <li><Link to="/resources" className="hover:text-accent transition-colors">Resources</Link></li>
-              <li><Link to="/faq" className="hover:text-accent transition-colors">FAQ</Link></li>
-              <li><Link to="/inquiry" className="hover:text-accent transition-colors">Contact Us</Link></li>
+              <li><Link to="/stock-cars" className="hover:text-accent transition-colors">Japanese Stock Cars</Link></li>
+              <li><Link to="/auctions" className="hover:text-accent transition-colors">Japan Auction Bidding</Link></li>
+              <li><Link to="/resources" className="hover:text-accent transition-colors">Auto Import Guides</Link></li>
+              <li><Link to="/faq" className="hover:text-accent transition-colors">Import FAQ</Link></li>
+              <li><Link to="/about-us" className="hover:text-accent transition-colors">About Neo Trading</Link></li>
+              <li><Link to="/inquiry" className="hover:text-accent transition-colors">Request CIF Quote</Link></li>
             </ul>
           </div>
 

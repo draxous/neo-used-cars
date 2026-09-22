@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,7 +10,8 @@ import PasswordInput from "@/components/PasswordInput";
 import PasswordStrength from "@/components/PasswordStrength";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { AuthError, useAuth } from "@/lib/auth";
+import { AuthError, safeRedirect, useAuth } from "@/lib/auth";
+import { clearResetRedirect, peekResetRedirect } from "@/lib/supabase";
 import { passwordSchema } from "@/lib/password";
 
 const schema = z
@@ -47,7 +48,17 @@ const hasLinkTokens = () => {
 
 const ResetPassword = () => {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const { user, ready, resetPassword } = useAuth();
+
+  // Where to land afterwards. The query string wins when the page was reached
+  // directly; otherwise it comes from what /forgot-password put aside before
+  // sending the email. `safeRedirect` keeps this to same-site paths.
+  const requested = params.get("redirect") ?? peekResetRedirect();
+  const redirect = safeRedirect(requested);
+  const forgotHref = requested
+    ? `/forgot-password?redirect=${encodeURIComponent(redirect)}`
+    : "/forgot-password";
   const linkError = useMemo(readLinkError, []);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -86,8 +97,9 @@ const ResetPassword = () => {
     setFormError(null);
     try {
       await resetPassword(values.password);
+      clearResetRedirect();
       toast.success("Password updated — you're signed in.");
-      navigate("/dashboard/home", { replace: true });
+      navigate(redirect, { replace: true });
     } catch (error) {
       setFormError(
         error instanceof AuthError
@@ -114,7 +126,7 @@ const ResetPassword = () => {
         }
       >
         <Button asChild className="w-full bg-primary hover:bg-primary/90">
-          <Link to="/forgot-password">Send me a new link</Link>
+          <Link to={forgotHref}>Send me a new link</Link>
         </Button>
       </AuthLayout>
     );

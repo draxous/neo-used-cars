@@ -14,6 +14,7 @@ import Layout from "@/components/Layout";
 import CarGrid from "@/components/CarGrid";
 import SearchSidebar from "@/components/SearchSidebar";
 import { Button } from "@/components/ui/button";
+import SEOHead from "@/components/SEOHead";
 import {
   Pagination,
   PaginationContent,
@@ -219,6 +220,12 @@ const Search = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="Search Japanese Used Cars & Auctions | Auto Imports from Japan - Neo Trading"
+        description="Filter and search Japanese used cars, JDM sports vehicles, Kei trucks, and live Japanese auto auction lots for direct import."
+        keywords="search japanese cars, search JDM imports, japanese auto auction search, buy car japan, auto imports from japan search"
+        canonicalUrl="/search"
+      />
       {/* Page head */}
       <div className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-6">

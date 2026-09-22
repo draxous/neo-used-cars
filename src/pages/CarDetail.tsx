@@ -29,6 +29,8 @@ import {
 } from "@/data/cars";
 import { useAuth } from "@/lib/auth";
 
+import SEOHead from "@/components/SEOHead";
+
 const CarDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -39,6 +41,56 @@ const CarDetail = () => {
 
   const related = getRelatedCars(car);
   const lot = car.auction;
+
+  const vehicleSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://neojapancars.com/" },
+          { "@type": "ListItem", "position": 2, "name": "Stock Cars", "item": "https://neojapancars.com/stock-cars" },
+          { "@type": "ListItem", "position": 3, "name": car.make, "item": `https://neojapancars.com/stock-cars/${slugify(car.make)}` },
+          { "@type": "ListItem", "position": 4, "name": car.model, "item": `https://neojapancars.com/stock-cars/${slugify(car.make)}/${slugify(car.model)}` },
+          { "@type": "ListItem", "position": 5, "name": `${car.year} ${car.make} ${car.model}`, "item": `https://neojapancars.com${carPath(car)}` },
+        ],
+      },
+      {
+        "@type": "Vehicle",
+        "name": `${car.year} ${car.make} ${car.model}`,
+        "description": `${car.year} ${car.make} ${car.model} available for auto import from Japan. Engine: ${car.engineCc}cc, ${car.fuel}, ${car.transmission}, ${formatMileage(car.mileageKm)}, ${car.drive}. Verified Japanese export inspection.`,
+        "vehicleModelDate": String(car.year),
+        "brand": {
+          "@type": "Brand",
+          "name": car.make,
+        },
+        "model": car.model,
+        "mileageFromOdometer": {
+          "@type": "QuantitativeValue",
+          "value": car.mileageKm,
+          "unitCode": "KMT",
+        },
+        "fuelType": car.fuel,
+        "vehicleTransmission": car.transmission,
+        "driveWheelConfiguration": car.drive,
+        "color": car.color,
+        "image": car.images,
+        "itemCondition": "https://schema.org/UsedCondition",
+        "offers": {
+          "@type": "Offer",
+          "price": car.priceUsd,
+          "priceCurrency": "USD",
+          "availability": car.status === "sold" ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
+          "url": `https://neojapancars.com${carPath(car)}`,
+          "seller": {
+            "@type": "AutoDealer",
+            "name": "Neo Trading Co., Ltd",
+            "url": "https://neojapancars.com/",
+          },
+        },
+      },
+    ],
+  };
 
   const specs: { label: string; value: string }[] = [
     { label: lot ? "Lot No." : "Stock No.", value: lot ? lot.lotNumber : car.id },
@@ -59,6 +111,15 @@ const CarDetail = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title={`${car.year} ${car.make} ${car.model} for Sale | Auto Imports from Japan - Neo Trading`}
+        description={`Used ${car.year} ${car.make} ${car.model} in Japan (${formatMileage(car.mileageKm)}, ${car.fuel}, ${car.transmission}). Certified auto import from Japan with pre-shipment inspection and worldwide shipping.`}
+        keywords={`${car.make} ${car.model} import, buy ${car.make} ${car.model} from japan, used ${car.make} ${car.model}, auto imports from japan`}
+        canonicalUrl={carPath(car)}
+        ogImage={car.images[0]}
+        ogType="product"
+        jsonLd={vehicleSchema}
+      />
       {/* Breadcrumb */}
       <div className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">

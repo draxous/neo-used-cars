@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { AlertCircle, CheckCircle2, Loader2, MailCheck, ShieldCheck } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Link2 as LinkIcon,
+  Loader2,
+  MailCheck,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import PasswordInput from "@/components/PasswordInput";
@@ -21,7 +28,9 @@ import {
 type Stage =
   /** Still checking the token. */
   | "loading"
-  /** No token, or one that has expired, been used or been revoked. */
+  /** No token in the URL at all — a truncated or hand-typed link. */
+  | "missing"
+  /** A real token that has expired, been used or been revoked. */
   | "invalid"
   /** Signed out: choose a password. The address is not ours to change. */
   | "form"
@@ -59,8 +68,12 @@ const AdminJoin = () => {
 
   /* Look the invitation up once, before anyone has signed in. */
   useEffect(() => {
+    // No token is a different problem from a dead one: the link was cut short
+    // somewhere between being sent and being opened, and the invitation itself
+    // is very probably still good. Saying so saves asking for a pointless
+    // reissue — see the "missing" panel below.
     if (!token) {
-      setStage("invalid");
+      setStage("missing");
       return;
     }
 
@@ -191,6 +204,27 @@ const AdminJoin = () => {
             <div className="flex flex-col items-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               <p className="text-sm text-muted-foreground mt-3">Checking your invitation…</p>
+            </div>
+          )}
+
+          {stage === "missing" && (
+            <div className="text-center py-4">
+              <LinkIcon className="h-8 w-8 text-muted-foreground/50 mx-auto mb-3" />
+              <h1 className="font-display text-xl font-bold text-foreground">
+                That link is incomplete
+              </h1>
+              <p className="text-sm text-muted-foreground mt-2">
+                An invitation link ends in <code className="text-foreground">?token=…</code>, and
+                this one arrived without it — usually because it was cut short when it was copied
+                or shared. Open the full link you were sent.
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Your invitation is most likely still fine, so there's no need to ask for a new one
+                until you've tried the whole link.
+              </p>
+              <Button asChild variant="secondary" className="mt-5">
+                <Link to="/">Back to site</Link>
+              </Button>
             </div>
           )}
 

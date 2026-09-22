@@ -39,14 +39,14 @@ export const navigation: NavItem[] = [
     href: "/resources",
     submenu: [
       {
-        name: "Blog",
+        name: "Import Guides",
         href: "/resources",
-        description: "Read our latest articles and automotive insights",
+        description: "Step-by-step roadmap, auction sheets, FOB vs CIF, and country rules",
       },
       {
-        name: "FAQ",
+        name: "Import FAQ",
         href: "/faq",
-        description: "Find answers to commonly asked questions",
+        description: "Frequently asked questions on auto imports from Japan",
       },
     ],
   },

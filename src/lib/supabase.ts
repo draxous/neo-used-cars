@@ -48,6 +48,51 @@ const rememberAwareStorage = {
     }, undefined),
 };
 
+const RESET_REDIRECT_KEY = "neo.auth.resetRedirect";
+
+/**
+ * Where to go once a password has been reset.
+ *
+ * The reset link arrives by email and opens in a fresh tab, so the destination
+ * cannot ride along in React state or sessionStorage — and it deliberately
+ * doesn't ride in the link either: Supabase matches `redirectTo` against the
+ * allow list in the dashboard, and an entry for a bare path rejects the same
+ * URL once it carries a query string, which would drop people on the home page
+ * instead. localStorage is shared across tabs in the one browser, which is the
+ * case that matters. Anywhere else this simply falls back to the dashboard.
+ *
+ * Kept to the lifetime of the link it belongs to, so a redirect stashed and
+ * abandoned can't resurface days later.
+ */
+const RESET_REDIRECT_TTL_MS = 60 * 60 * 1000;
+
+export const stashResetRedirect = (path: string | null) =>
+  safe(() => {
+    if (!path) return localStorage.removeItem(RESET_REDIRECT_KEY);
+    localStorage.setItem(
+      RESET_REDIRECT_KEY,
+      JSON.stringify({ path, expires: Date.now() + RESET_REDIRECT_TTL_MS })
+    );
+  }, undefined);
+
+/**
+ * Reads the stashed destination without consuming it. Reading and clearing in
+ * one step would be lost to a re-render — StrictMode renders twice in dev, and
+ * the second pass would find the entry already gone. `clearResetRedirect` runs
+ * once the reset actually succeeds instead.
+ */
+export const peekResetRedirect = (): string | null =>
+  safe(() => {
+    const raw = localStorage.getItem(RESET_REDIRECT_KEY);
+    if (!raw) return null;
+    const { path, expires } = JSON.parse(raw) as { path?: string; expires?: number };
+    if (!path || !expires || Date.now() > expires) return null;
+    return path;
+  }, null);
+
+export const clearResetRedirect = () =>
+  safe(() => localStorage.removeItem(RESET_REDIRECT_KEY), undefined);
+
 export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(url, anonKey, {
       auth: {

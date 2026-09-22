@@ -3,6 +3,7 @@ import { ArrowRight, Gavel, Languages, Ship, Search, Wallet } from "lucide-react
 import Layout from "@/components/Layout";
 import InquiryBox from "@/components/InquiryBox";
 import { Button } from "@/components/ui/button";
+import SEOHead from "@/components/SEOHead";
 
 const steps = [
   {
@@ -35,6 +36,12 @@ const steps = [
 const Auctions = () => {
   return (
     <Layout>
+      <SEOHead
+        title="Japanese Car Auction Agent | Direct Auto Imports from Japan - Neo Trading"
+        description="Bid directly on 150+ Japanese car auctions (USS, TAA, CAA, JU). Professional auction sheet translation, pre-bid inspection, and worldwide export shipping."
+        keywords="japanese car auction, USS auction japan, buy car from japan auction, auto imports from japan, TAA auction, JDM auction agent, japan vehicle auction"
+        canonicalUrl="/auctions"
+      />
       <section className="hero-gradient text-primary-foreground">
         <div className="container mx-auto px-4 py-14">
           <span className="inline-block px-4 py-1.5 bg-accent text-accent-foreground text-sm font-medium rounded-full mb-4">

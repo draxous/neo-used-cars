@@ -133,7 +133,9 @@ const Login = () => {
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
             <Link
-              to={`/forgot-password?email=${encodeURIComponent(watch("email") ?? "")}`}
+              to={`/forgot-password?email=${encodeURIComponent(
+                watch("email") ?? ""
+              )}&redirect=${encodeURIComponent(redirect)}`}
               className="text-xs text-primary hover:underline"
             >
               Forgot password?

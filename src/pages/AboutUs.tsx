@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { cars, getMakes, isListed } from "@/data/cars";
+import SEOHead from "@/components/SEOHead";
 
 const values = [
   "Direct export from Japan — no middlemen",
@@ -22,6 +23,12 @@ const AboutUs = () => {
 
   return (
     <Layout>
+      <SEOHead
+        title="About Neo Trading | Japanese Used Car Exporter in Tokyo, Japan"
+        description="Learn about Neo Trading Co., Ltd, Tokyo-based vehicle exporter. Member of 150+ Japanese car auctions, certified inspections, and direct auto imports from Japan worldwide."
+        keywords="about neo trading, japanese car exporter tokyo, auto imports from japan, japan used car company"
+        canonicalUrl="/about-us"
+      />
       <section className="hero-gradient text-primary-foreground">
         <div className="container mx-auto px-4 py-14">
           <h1 className="font-display text-3xl lg:text-5xl font-bold">About Neo Trading</h1>

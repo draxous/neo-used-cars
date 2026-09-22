@@ -46,7 +46,7 @@ export interface AuthContextValue {
   register: (values: RegisterValues) => Promise<RegisterResult>;
   signOut: () => void;
   /** Emails a password reset link. Resolves the same way for unknown addresses. */
-  requestPasswordReset: (email: string) => Promise<void>;
+  requestPasswordReset: (email: string, redirect?: string | null) => Promise<void>;
   /** Sets a new password for the session opened by a recovery link. */
   resetPassword: (password: string) => Promise<void>;
   /** Sends the confirmation email again. */

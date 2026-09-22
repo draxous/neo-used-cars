@@ -19,6 +19,12 @@ type Values = z.infer<typeof schema>;
 const ForgotPassword = () => {
   const [params] = useSearchParams();
   const { requestPasswordReset } = useAuth();
+  // Where the person was headed before they got stuck on their password —
+  // an invitation link, most often, which is unreachable without its token.
+  const redirect = params.get("redirect");
+  const backToSignIn = redirect
+    ? `/login?redirect=${encodeURIComponent(redirect)}`
+    : "/login";
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -36,7 +42,7 @@ const ForgotPassword = () => {
   const onSubmit = async (values: Values) => {
     setFormError(null);
     try {
-      await requestPasswordReset(values.email);
+      await requestPasswordReset(values.email, redirect);
       // Shown even for an address we've never seen, so nobody can use this
       // form to find out which emails have accounts.
       setSentTo(values.email.trim());
@@ -57,7 +63,7 @@ const ForgotPassword = () => {
         footer={
           <>
             Remembered it?{" "}
-            <Link to="/login" className="font-medium text-primary hover:underline">
+            <Link to={backToSignIn} className="font-medium text-primary hover:underline">
               Back to sign in
             </Link>
           </>
@@ -91,7 +97,7 @@ const ForgotPassword = () => {
       footer={
         <>
           Remembered it?{" "}
-          <Link to="/login" className="font-medium text-primary hover:underline">
+          <Link to={backToSignIn} className="font-medium text-primary hover:underline">
             Back to sign in
           </Link>
         </>

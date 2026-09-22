@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import Layout from "@/components/Layout";
 import CarGrid from "@/components/CarGrid";
 import MakersSidebar from "@/components/MakersSidebar";
+import SEOHead from "@/components/SEOHead";
 import {
   Select,
   SelectContent,
@@ -47,28 +48,91 @@ const StockCars = ({ variant = "all" }: { variant?: StockVariant }) => {
 
   const siblingModels = makeSlug ? getModels(makeSlug) : [];
 
-  const { title, subtitle } = (() => {
+  const { title, subtitle, seoTitle, seoDescription, canonicalPath } = (() => {
     if (variant === "collection" && collection)
-      return { title: collection.name, subtitle: collection.description };
+      return {
+        title: collection.name,
+        subtitle: collection.description,
+        seoTitle: `${collection.name} | Auto Imports from Japan - Neo Trading`,
+        seoDescription: `Browse ${collection.name} available for direct auto import from Japan. Verified quality, full inspection sheets, and worldwide shipping.`,
+        canonicalPath: `/stock-cars/collection/${collection.slug}`,
+      };
     if (variant === "model" && makeName && modelName)
       return {
         title: `${makeName} ${modelName} for sale`,
         subtitle: `Used ${makeName} ${modelName} stock, inspected in Japan and ready for export worldwide.`,
+        seoTitle: `Used ${makeName} ${modelName} for Sale | Auto Imports from Japan - Neo Trading`,
+        seoDescription: `Find quality used ${makeName} ${modelName} vehicles for direct auto import from Japan. Verified Japanese export, inspection reports, and port delivery.`,
+        canonicalPath: `/stock-cars/${makeSlug}/${modelSlug}`,
       };
     if (variant === "make" && makeName)
       return {
         title: `Used ${makeName} for sale`,
         subtitle: `Browse our full range of used ${makeName} vehicles available for direct export from Japan.`,
+        seoTitle: `Used ${makeName} for Sale | Auto Imports from Japan - Neo Trading`,
+        seoDescription: `Browse used ${makeName} cars for sale in Japan. Direct auto imports from Japan, live auction access, and worldwide shipping.`,
+        canonicalPath: `/stock-cars/${makeSlug}`,
       };
     return {
       title: "Stock Cars",
       subtitle:
         "Our full inventory of quality Japanese used vehicles, ready to purchase and ship.",
+      seoTitle: "Auto Imports from Japan — Verified Used Car Stock | Neo Trading",
+      seoDescription:
+        "Browse verified Japanese used cars in stock ready for export. Direct auto imports from Japan, pre-shipment inspections, FOB/CIF quotes, and global delivery.",
+      canonicalPath: "/stock-cars",
     };
   })();
 
+  const breadcrumbsList = [
+    { name: "Home", item: "https://neojapancars.com/" },
+    { name: "Stock Cars", item: "https://neojapancars.com/stock-cars" },
+    ...(makeName && makeSlug
+      ? [{ name: makeName, item: `https://neojapancars.com/stock-cars/${makeSlug}` }]
+      : []),
+    ...(modelName && makeSlug && modelSlug
+      ? [{ name: modelName, item: `https://neojapancars.com/stock-cars/${makeSlug}/${modelSlug}` }]
+      : []),
+    ...(collection && collectionSlug
+      ? [{ name: collection.name, item: `https://neojapancars.com/stock-cars/collection/${collectionSlug}` }]
+      : []),
+  ];
+
+  const stockSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": breadcrumbsList.map((crumb, idx) => ({
+          "@type": "ListItem",
+          "position": idx + 1,
+          "name": crumb.name,
+          "item": crumb.item,
+        })),
+      },
+      {
+        "@type": "ItemList",
+        "name": seoTitle,
+        "numberOfItems": results.length,
+        "itemListElement": results.slice(0, 10).map((car, idx) => ({
+          "@type": "ListItem",
+          "position": idx + 1,
+          "name": `${car.year} ${car.make} ${car.model}`,
+          "url": `https://neojapancars.com/stock-cars/${car.make.toLowerCase()}/${car.model.toLowerCase().replace(/\\s+/g, "-")}/${car.id}`,
+        })),
+      },
+    ],
+  };
+
   return (
     <Layout>
+      <SEOHead
+        title={seoTitle}
+        description={seoDescription}
+        canonicalUrl={canonicalPath}
+        jsonLd={stockSchema}
+      />
+
       {/* Breadcrumb + page heading */}
       <div className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-6">
@@ -108,15 +172,13 @@ const StockCars = ({ variant = "all" }: { variant?: StockVariant }) => {
             )}
           </nav>
 
-          <h1 className="font-display text-3xl lg:text-4xl font-bold text-foreground">
-            {title}
-          </h1>
-          <p className="text-muted-foreground mt-2 max-w-3xl">{subtitle}</p>
+          <h1 className="font-display text-3xl font-bold text-foreground">{title}</h1>
+          <p className="text-muted-foreground mt-2 max-w-2xl text-sm sm:text-base">{subtitle}</p>
         </div>
       </div>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-[280px_1fr] gap-8">
+        <div className="grid lg:grid-cols-[280px_1fr] gap-8 items-start">
           <div className="hidden lg:block">
             <MakersSidebar />
           </div>
