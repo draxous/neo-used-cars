@@ -36,6 +36,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-primary-foreground/80">
               <li><Link to="/stock-cars" className="hover:text-accent transition-colors">Japanese Stock Cars</Link></li>
               <li><Link to="/auctions" className="hover:text-accent transition-colors">Japan Auction Bidding</Link></li>
+              <li><Link to="/blog" className="hover:text-accent transition-colors">JDM & Import Blog</Link></li>
               <li><Link to="/resources" className="hover:text-accent transition-colors">Auto Import Guides</Link></li>
               <li><Link to="/faq" className="hover:text-accent transition-colors">Import FAQ</Link></li>
               <li><Link to="/about-us" className="hover:text-accent transition-colors">About Neo Trading</Link></li>

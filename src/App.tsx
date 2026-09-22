@@ -10,6 +10,8 @@ import CarDetail from "./pages/CarDetail";
 import Search from "./pages/Search";
 import Auctions from "./pages/Auctions";
 import Resources from "./pages/Resources";
+import BlogList from "./pages/BlogList";
+import BlogPost from "./pages/BlogPost";
 import Faq from "./pages/Faq";
 import AboutUs from "./pages/AboutUs";
 import Inquiry from "./pages/Inquiry";
@@ -74,6 +76,8 @@ const App = () => (
               <Route path="/search" element={<Search />} />
               <Route path="/auctions" element={<Auctions />} />
               <Route path="/resources" element={<Resources />} />
+              <Route path="/blog" element={<BlogList />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/faq" element={<Faq />} />
               <Route path="/about-us" element={<AboutUs />} />
               <Route path="/inquiry" element={<Inquiry />} />
