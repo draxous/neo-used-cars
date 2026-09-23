@@ -41,6 +41,7 @@ const Footer = () => {
               <li><Link to="/faq" className="hover:text-accent transition-colors">Import FAQ</Link></li>
               <li><Link to="/about-us" className="hover:text-accent transition-colors">About Neo Trading</Link></li>
               <li><Link to="/inquiry" className="hover:text-accent transition-colors">Request CIF Quote</Link></li>
+              <li><a href="/rss.xml" className="hover:text-accent transition-colors" target="_blank" rel="noopener noreferrer">RSS Feed (XML)</a></li>
             </ul>
           </div>
 

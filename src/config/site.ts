@@ -37,12 +37,13 @@ export const siteConfig: SiteConfig = {
 
 /** Top destination markets for Japanese used vehicle exports. */
 export const countries = [
-  "Australia", "Bahamas", "Bangladesh", "Bolivia", "Botswana", "Chile",
+  "United States", "United Kingdom", "Canada", "Australia", "New Zealand",
+  "Bahamas", "Bangladesh", "Bolivia", "Botswana", "Chile",
   "Cyprus", "DR Congo", "Fiji", "Georgia", "Guyana", "Ireland", "Jamaica",
   "Kenya", "Malawi", "Mauritius", "Mongolia", "Mozambique", "Myanmar",
-  "Nepal", "New Zealand", "Pakistan", "Papua New Guinea", "Paraguay", "Peru",
+  "Nepal", "Pakistan", "Papua New Guinea", "Paraguay", "Peru",
   "Philippines", "Russia", "South Africa", "Sri Lanka", "Tanzania",
-  "Trinidad & Tobago", "UAE", "Uganda", "United Kingdom", "Zambia",
+  "Trinidad & Tobago", "UAE", "Uganda", "Zambia",
   "Zimbabwe", "Other",
 ];
 

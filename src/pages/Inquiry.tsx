@@ -1,7 +1,8 @@
 import { useSearchParams } from "react-router-dom";
-import { Mail, MapPin, Phone, Clock } from "lucide-react";
+import { Mail, MapPin, Phone, Clock, MessageCircle } from "lucide-react";
 import Layout from "@/components/Layout";
 import InquiryForm from "@/components/InquiryForm";
+import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { formatAuctionDate, getCarById } from "@/data/cars";
 import SEOHead from "@/components/SEOHead";
@@ -76,10 +77,26 @@ const Inquiry = () => {
               <h3 className="font-display font-semibold text-foreground mb-2">
                 Prefer to message us?
               </h3>
-              <p className="text-sm text-muted-foreground">
-                We're on WhatsApp during office hours — use the green button in the corner of any
-                page and we'll usually reply the same day.
+              <p className="text-sm text-muted-foreground mb-4">
+                We're on WhatsApp during Tokyo office hours — message us directly for immediate stock inquiries and landed CIF estimates.
               </p>
+              <Button
+                asChild
+                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold gap-2 shadow-sm"
+              >
+                <a
+                  href={`https://wa.me/${siteConfig.phoneRaw}?text=${encodeURIComponent(
+                    car
+                      ? `Hello Neo Trading! I want to inquire about the ${car.year} ${car.make} ${car.model} (Stock ID: ${car.id}).`
+                      : "Hello Neo Trading! I'm interested in importing a car from Japan. Please assist me."
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Chat on WhatsApp Now
+                </a>
+              </Button>
             </div>
           </div>
 

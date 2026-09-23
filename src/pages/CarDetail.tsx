@@ -6,6 +6,7 @@ import {
   Fuel,
   Gauge,
   MapPin,
+  MessageCircle,
   Settings,
   ShieldCheck,
 } from "lucide-react";
@@ -14,8 +15,11 @@ import CarGrid from "@/components/CarGrid";
 import CarPurchasePanel from "@/components/CarPurchasePanel";
 import InquiryForm from "@/components/InquiryForm";
 import FavoriteButton from "@/components/FavoriteButton";
+import ShippingEstimator from "@/components/ShippingEstimator";
 import NotFound from "./NotFound";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { siteConfig } from "@/config/site";
 import {
   carPath,
   formatAuctionDate,
@@ -232,6 +236,9 @@ const CarDetail = () => {
                 ))}
               </dl>
             </div>
+
+            {/* Instant Landed Cost & CIF Shipping Estimator */}
+            <ShippingEstimator car={car} />
           </div>
 
           {/* Sticky price panel. Signed in, you can act on the car directly;
@@ -266,6 +273,22 @@ const CarDetail = () => {
                 )}
 
                 <FavoriteButton car={car} variant="inline" label className="w-full mt-4" />
+
+                <Button
+                  asChild
+                  className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold gap-2 mt-2 shadow-sm"
+                >
+                  <a
+                    href={`https://wa.me/${siteConfig.phoneRaw}?text=${encodeURIComponent(
+                      `Hello Neo Trading! I am inquiring about the ${car.year} ${car.make} ${car.model} (Stock ID: ${car.id}). Please advise on shipping and availability.`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Chat on WhatsApp
+                  </a>
+                </Button>
 
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border text-sm text-foreground">
                   <ShieldCheck className="h-5 w-5 text-accent flex-shrink-0" />

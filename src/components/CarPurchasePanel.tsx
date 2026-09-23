@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { FileSearch, Gavel, Languages, MessageSquareQuote, ShieldCheck, ShoppingCart } from "lucide-react";
+import { FileSearch, Gavel, Languages, MessageCircle, MessageSquareQuote, ShieldCheck, ShoppingCart } from "lucide-react";
+import { siteConfig } from "@/config/site";
 import CarRequestDialog from "@/components/CarRequestDialog";
 import FavoriteButton from "@/components/FavoriteButton";
 import { Badge } from "@/components/ui/badge";
@@ -112,6 +113,22 @@ const CarPurchasePanel = ({ car, userId }: { car: Car; userId: string }) => {
         )}
 
         <FavoriteButton car={car} variant="inline" label className="w-full mt-2" />
+
+        <Button
+          asChild
+          className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-semibold gap-2 mt-2 shadow-sm"
+        >
+          <a
+            href={`https://wa.me/${siteConfig.phoneRaw}?text=${encodeURIComponent(
+              `Hello Neo Trading! I am inquiring about the ${car.year} ${car.make} ${car.model} (Stock ID: ${car.id}). Please advise on shipping and availability.`
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <MessageCircle className="h-4 w-4" />
+            Chat on WhatsApp
+          </a>
+        </Button>
 
         <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border text-sm text-foreground">
           <ShieldCheck className="h-5 w-5 text-accent flex-shrink-0" />

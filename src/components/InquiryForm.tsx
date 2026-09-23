@@ -188,8 +188,16 @@ const InquiryForm = ({
       void notifyByEmail(values).catch(() => undefined);
     }
 
-    toast.success("Inquiry sent!", {
-      description: "Our team will get back to you within 24 hours.",
+    const whatsAppUrl = `https://wa.me/${siteConfig.phoneRaw}?text=${encodeURIComponent(
+      `Hello Neo Trading! I just submitted an inquiry for ${values.make} ${values.model} (${values.yearRange}) to ${values.country}. My name is ${values.firstName} ${values.lastName}.`
+    )}`;
+
+    toast.success("Inquiry sent successfully!", {
+      description: "Our Tokyo export team will reply within 24 hours.",
+      action: {
+        label: "Chat on WhatsApp",
+        onClick: () => window.open(whatsAppUrl, "_blank"),
+      },
     });
 
     // Signed-in customers get the inquiry on their activity feed.
