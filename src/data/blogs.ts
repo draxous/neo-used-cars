@@ -370,6 +370,256 @@ export const blogs: BlogPost[] = [
       },
     ],
   },
+  {
+    id: "importing-japanese-kei-trucks-to-usa",
+    slug: "importing-japanese-kei-trucks-to-usa",
+    title: "The Ultimate Guide to Importing Japanese 4WD Kei Trucks to the USA",
+    subtitle: "Everything you need to know about buying, shipping, and registering Daihatsu Hijet, Suzuki Carry, Honda Acty, and Subaru Sambar mini trucks in America.",
+    description: "Learn how to import Japanese Kei trucks to the USA under the 25-year rule. Understand the 25% Chicken Tax, off-road vs street-legal state laws, and model comparisons.",
+    publishedAt: "September 22, 2026",
+    isoDate: "2026-09-22",
+    readTime: "8 min read",
+    author: {
+      name: "Kenji Sato",
+      role: "Head of Export Logistics, Neo Trading Tokyo",
+    },
+    category: "US Market",
+    market: "US",
+    image: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=1200&h=630&fit=crop",
+    tags: ["Kei Trucks", "USA Import", "25-Year Rule", "Daihatsu Hijet", "Suzuki Carry", "Honda Acty", "Chicken Tax"],
+    keywords: "import kei truck to usa, japanese mini truck import, buy kei truck from japan, daihatsu hijet import usa, suzuki carry 4wd import, chicken tax kei truck",
+    sections: [
+      {
+        heading: "1. The Phenomenon of Japanese Kei Trucks in America",
+        content: [
+          "Over the past decade, Japanese Kei-class mini trucks (Keitora) have transformed from quirky curiosities into some of the most popular vehicles imported from Japan into the United States.",
+          "Measuring under 11 feet in length and equipped with robust 660cc engines, switchable four-wheel drive (4WD), low-range transfer cases, axle differential locks, and fold-flat cargo beds, Kei trucks outperform modern side-by-sides (UTVs) at a fraction of the price.",
+          "Farmers, ranchers, hunting enthusiasts, small businesses, and urban commuters across the US have discovered that an imported Kei truck delivers unmatched utility, 40+ MPG fuel efficiency, and legendary Japanese reliability.",
+        ],
+      },
+      {
+        heading: "2. The 25-Year Rule & Chicken Tax Tariff",
+        content: [
+          "Like all foreign motor vehicles, Kei trucks must be at least 25 years old from their exact month of manufacture to be imported free of Federal Motor Vehicle Safety Standards (FMVSS).",
+          "However, US Customs classifies 2-seater cab-over pickups as commercial trucks under the infamous 1964 'Chicken Tax' tariff, resulting in a 25% customs duty rate rather than the standard 2.5% passenger car rate.",
+          "Kei passenger vans (such as the Daihatsu Atrai, Suzuki Every Wagon, and Subaru Sambar Dias with factory rear seats and seatbelts) are classified by US Customs as multi-purpose passenger vehicles and qualify for the standard 2.5% duty rate.",
+        ],
+        table: {
+          headers: ["Vehicle Body Style", "US Customs Tariff", "Duty Percentage", "Typical FOB Price"],
+          rows: [
+            ["Kei Truck (2-seater flatbed pickup)", "HTS 8704.31 (Cargo truck)", "25% of FOB Value", "$2,000 - $5,500 USD"],
+            ["Kei Van (4-passenger van with rear seats)", "HTS 8703.21 (Passenger car)", "2.5% of FOB Value", "$2,500 - $6,000 USD"],
+            ["Kei Dump Truck (Hydraulic tipper)", "HTS 8704.31 (Specialist truck)", "25% of FOB Value", "$4,500 - $8,500 USD"],
+          ],
+        },
+      },
+      {
+        heading: "3. Top Kei Truck Models Compared",
+        content: [
+          "While all Japanese manufacturers built Kei trucks adhering to strict dimension regulations (maximum 3.4m length, 1.48m width, and 660cc displacement), their mechanical layouts differ significantly:",
+        ],
+        table: {
+          headers: ["Model", "Engine Layout", "Drivetrain Highlights", "Best For"],
+          rows: [
+            ["Daihatsu Hijet", "Mid-engine under seat", "Hi/Lo 4WD with Push-button Diff Lock, high ground clearance", "All-around farm & off-road utility"],
+            ["Suzuki Carry", "Mid-engine longitudinal", "Super-rugged 5-speed with Extra Low (Axle Lock)", "Heavy cargo & rough terrain"],
+            ["Honda Acty", "Rear mid-engine (E07A)", "Full-time RealTime 4WD, exceptionally smooth revving", "Paved roads, snowy conditions, collectors"],
+            ["Subaru Sambar", "Rear-engine 'Sambar RR'", "Independent 4-wheel suspension, supercharged option available", "Maximum cab comfort and smooth ride"],
+          ],
+        },
+      },
+      {
+        heading: "4. State-by-State Street Legality & Titling",
+        content: [
+          "At the federal level, any 25-year-old Kei truck is 100% legally imported with clean CBP 7501, DOT HS-7, and EPA 3520-1 forms. However, on-road registration is regulated at the state level by your local Department of Motor Vehicles (DMV).",
+          "States like Texas, Florida, North Carolina, Tennessee, Idaho, Montana, and Arizona readily grant full unrestricted road titles and license plates. Other states may restrict Kei trucks to rural roads, low-speed zones (under 50 MPH), or agricultural farm tags.",
+          "Neo Trading assists American buyers by providing certified English translations of the Japanese Export Certificate and official manufacturer build date documentation required by state DMV offices.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "jdm-cars-becoming-25-year-us-legal",
+    slug: "jdm-cars-becoming-25-year-us-legal",
+    title: "JDM Legends Becoming 25-Year US Legal in 2024–2026: The Complete List",
+    subtitle: "The most anticipated wave of Japanese domestic market icons crossing the 25-year threshold: R34 GT-R, S15 Silvia, Lancer Evo VI, and Series 8 RX-7.",
+    description: "Discover which JDM sports cars become 25-year legal for US import in 2024, 2025, and 2026. A strategic guide on how to secure vehicles in Japan before auction prices skyrocket.",
+    publishedAt: "September 22, 2026",
+    isoDate: "2026-09-22",
+    readTime: "9 min read",
+    author: {
+      name: "Tatsuya Mori",
+      role: "Senior JDM Vehicle Specialist, Neo Trading",
+    },
+    category: "US Market",
+    market: "US",
+    image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=1200&h=630&fit=crop",
+    tags: ["JDM Icons", "25-Year Rule", "R34 GT-R", "S15 Silvia", "Lancer Evo VI", "FD RX-7", "USA Import"],
+    keywords: "jdm cars becoming legal 2024 2025 2026, R34 legal in us, s15 silvia legal us import, lancer evo 6 import usa, 25 year rule calendar jdm",
+    sections: [
+      {
+        heading: "1. The Golden Era of JDM (1999–2002) Finally Arrives in America",
+        content: [
+          "Automotive historians universally celebrate the turn of the millennium as the absolute pinnacle of Japanese sports car engineering. Between 1999 and 2002, Japanese manufacturers released their final, most refined iterations of turbocharged, rear-wheel-drive, and all-wheel-drive performance machinery.",
+          "Under the US 25-year exemption rule, each calendar month unlocks new vehicles manufactured 25 years earlier. As 1999, 2000, and 2001 production models cross the threshold, American collectors face an exciting influx of newly eligible JDM royalty.",
+        ],
+      },
+      {
+        heading: "2. The Newly Legal JDM Roster",
+        content: [
+          "Here is the definitive guide to iconic Japanese models crossing the 25-year US import eligibility threshold:",
+        ],
+        table: {
+          headers: ["Vehicle & Chassis", "Production Debut", "US Legal Date", "Notable Features"],
+          rows: [
+            ["Nissan Skyline GT-R (BNR34)", "January 1999", "January 2024 onwards", "RB26DETT, 6-speed Getrag, MFD telemetry display, V-Spec aero"],
+            ["Nissan Silvia Spec-R (S15)", "January 1999", "January 2024 onwards", "250 HP SR20DET ball-bearing turbo, 6-speed manual, helical LSD"],
+            ["Mitsubishi Lancer Evo VI (CP9A)", "January 1999", "January 2024 onwards", "Titanium turbo turbine, offset cooling bumper, WRC championship edition"],
+            ["Mazda RX-7 FD3S (Series 8)", "January 1999", "January 2024 onwards", "280 PS 13B-REW, redesigned front fascia, twin oil coolers, flying wing"],
+            ["Honda S2000 JDM Spec (AP1)", "April 1999", "April 2024 onwards", "F20C engine with 9,000 RPM redline, 250 PS JDM higher compression ratio"],
+            ["Mitsubishi Lancer Evo VI T.M.E.", "December 1999", "December 2024 onwards", "Tommi Makinen Edition: titanium turbine, tarmac suspension, Recaro seats"],
+            ["Toyota Altezza RS200 (SXE10)", "October 1998 / 1999", "Now 100% Legal", "Yamaha-developed BEAMS 3S-GE with dual VVT-i, 210 HP, 6-speed RWD"],
+            ["Subaru Impreza WRX STI Ver. 6", "September 1999", "September 2024 onwards", "Final classic GC8 body, closed-deck EJ207 boxer, high rear wing"],
+          ],
+        },
+      },
+      {
+        heading: "3. The '25-Year Price Spike': Why Buying Early Matters",
+        content: [
+          "In the Japanese domestic auction market, vehicle values reliably follow a predictable curve known as the 'American effect'.",
+          "Approximately 12 to 18 months before a model turns 25, global collectors and US-focused dealers begin aggressively purchasing and storing inventory in Japanese export bonded yards. Once the car reaches its official eligibility month, prices often jump by 30% to 70%.",
+          "Neo Trading offers secure Japanese storage solutions in Tokyo and Yokohama, enabling American clients to acquire prized models months ahead of legal shipping date at significantly lower auction hammer prices.",
+        ],
+        callout: {
+          type: "tip",
+          title: "Verify Exact Chassis Month",
+          text: "A 1999 model manufactured in November cannot clear US Customs until November of its 25th anniversary. Neo checks the official Japanese chassis build date database so your vehicle arrives at the US port on the exact day of legal clearance.",
+        },
+      },
+    ],
+  },
+  {
+    id: "importing-campervans-toyota-alphard-nissan-elgrand-uk",
+    slug: "importing-campervans-toyota-alphard-nissan-elgrand-uk",
+    title: "Importing Campervans to the UK: Toyota Alphard vs. Nissan Elgrand",
+    subtitle: "Why British camper converters are choosing rust-free Japanese luxury MPVs over Volkswagen Transporters, and how to import them seamlessly.",
+    description: "Compare the Toyota Alphard and Nissan Elgrand for UK campervan and day van conversions. Learn about ULEZ compliance, 10-year rule MOT testing, DVLA motor caravan classification, and conversion costs.",
+    publishedAt: "September 23, 2026",
+    isoDate: "2026-09-23",
+    readTime: "8 min read",
+    author: {
+      name: "Marcus Vance",
+      role: "UK & European Import Specialist, Neo Trading",
+    },
+    category: "UK Market",
+    market: "UK",
+    image: "https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=1200&h=630&fit=crop",
+    tags: ["UK Import", "Toyota Alphard", "Nissan Elgrand", "Campervan", "ULEZ Compliant", "DVLA Registration"],
+    keywords: "import toyota alphard uk, nissan elgrand campervan import, japanese day van uk, camper conversion alphard uk, ulez compliant campervan japan",
+    sections: [
+      {
+        heading: "1. The Rise of the Japanese Luxury Camper in Britain",
+        content: [
+          "For decades, the Volkswagen Transporter (T4, T5, T6) dominated the UK campervan scene. However, surging second-hand prices, commercial vehicle ride stiffness, and notorious chassis rust have pushed savvy British adventurers toward Japanese luxury MPVs.",
+          "The Toyota Alphard and Nissan Elgrand are built with plush passenger car suspension, smooth multi-cylinder petrol or hybrid powertrains, dual power sliding doors, and ultra-high factory equipment specifications—at half the price of a comparable VW van.",
+          "Crucially, Japanese roads in major cities are not salted, ensuring that 10 to 15-year-old Alphards and Elgrands arrive in the UK with pristine, corrosion-free sills and chassis rails.",
+        ],
+      },
+      {
+        heading: "2. Head-to-Head: Toyota Alphard vs. Nissan Elgrand",
+        content: [
+          "Both models are exceptionally suited for day van, surf bus, and full camper conversions, but each has distinct advantages:",
+        ],
+        table: {
+          headers: ["Feature / Metric", "Toyota Alphard (10/20 Series)", "Nissan Elgrand (E51 / E52)"],
+          rows: [
+            ["Engine Options", "2.4L 4-Cylinder (2AZ) / 3.0L V6 (1MZ) / 2.4L Hybrid", "2.5L V6 (VQ25DE) / 3.5L V6 (VQ35DE 350Z engine)"],
+            ["Drivetrain", "Front-Wheel Drive or AWD (E-Four Hybrid)", "Rear-Wheel Drive (E51) or All-Mode 4WD"],
+            ["Fuel Economy", "25 - 35 MPG (Hybrid up to 40 MPG)", "20 - 28 MPG (smooth V6 highway cruiser)"],
+            ["London ULEZ Status", "Petrol models 2006+ and Hybrids are ULEZ compliant", "Petrol V6 models 2004+ typically ULEZ compliant"],
+            ["Conversion Cabin Space", "Slightly taller internal ceiling, excellent for pop-tops", "Wider stance, executive cockpit feel"],
+            ["UK Parts Availability", "Very high (shares parts with Camry, RAV4, RX300)", "Very high (shares VQ engine with 350Z and Murano)"],
+          ],
+        },
+      },
+      {
+        heading: "3. The UK Import & Conversion Pathway",
+        content: [
+          "Step 1: Choose a 10+ Year-Old Model. Vehicles over 10 years old bypass the expensive Individual Vehicle Approval (IVA) test, requiring only a standard UK MOT test.",
+          "Step 2: Sourcing via Neo Trading. We inspect auction sheet grades (targeting Grade 4 or 4.5), verify air conditioning operation, and check underbody floor pans.",
+          "Step 3: Shipping to Southampton or Bristol. RoRo ocean shipping takes approximately 5 to 6 weeks. We handle all Japanese export paperwork and courier original Bill of Lading and Export Certificates.",
+          "Step 4: HMRC NOVA, Fog Light & MOT. Clear UK customs (10% duty, 20% VAT), notify HMRC NOVA, install a rear fog light and MPH dial overlay, and pass the UK MOT test.",
+          "Step 5: DVLA Swansea Registration. Submit Form V55/5 to receive your UK V5C logbook. Once converted with a rock-and-roll bed, kitchen pod, and pop-top roof, you can update DVLA body type records.",
+        ],
+      },
+    ],
+  },
+  {
+    id: "how-to-verify-japanese-car-odometer-auction-sheet",
+    slug: "how-to-verify-japanese-car-odometer-auction-sheet",
+    title: "How to Read Japanese Auction Odometer & Condition Sheets: Anti-Fraud Guide",
+    subtitle: "Learn how the Japanese Ministry of Transport tracks genuine mileage, how to decode auction sheet inspector remarks, and how to spot hidden accident repairs.",
+    description: "Protect yourself from odometer rollbacks and undisclosed collision damage when importing cars from Japan. Learn how to read Japanese auction inspection sheets and verify MLIT shaken records.",
+    publishedAt: "September 23, 2026",
+    isoDate: "2026-09-23",
+    readTime: "8 min read",
+    author: {
+      name: "Kenji Sato",
+      role: "Head of Export Logistics, Neo Trading Tokyo",
+    },
+    category: "Auction Guides",
+    market: "Global",
+    image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&h=630&fit=crop",
+    tags: ["Auction Sheets", "Odometer Verification", "JEVIC Inspection", "Auction Grades", "Anti-Fraud"],
+    keywords: "japanese car odometer rollback, how to verify japanese auction sheet, JEVIC odometer certificate, reading japanese export certificate, auction grade R explained",
+    sections: [
+      {
+        heading: "1. Why Japan Has the World's Most Reliable Vehicle Records",
+        content: [
+          "Unlike many domestic used car markets where odometer rollbacks and undocumented collision repairs run rampant, Japan operates the world's most heavily audited motor vehicle registry.",
+          "Every two years in Japan, passenger vehicles must undergo a mandatory government inspection known as 'Shaken' (車検). During each Shaken, the vehicle's exact kilometer odometer reading is recorded into the central database of the Ministry of Land, Infrastructure, Transport and Tourism (MLIT).",
+          "When a vehicle is deregistered for export, MLIT prints the official Japanese Export Certificate (Yushutsu Massho), which displays the odometer reading from the two most recent Shaken inspections.",
+        ],
+      },
+      {
+        heading: "2. How to Spot Odometer Discrepancies on Auction Sheets",
+        content: [
+          "Japanese auction inspectors verify odometer readouts against maintenance logbooks and central databases, applying standardized symbols directly to the inspection sheet:",
+        ],
+        table: {
+          headers: ["Symbol / Notation", "Status", "What It Means for the Buyer"],
+          rows: [
+            ["No symbol (e.g. 64,210 km)", "Verified Genuine", "Odometer is officially certified as genuine by auction database records."],
+            ["* (Asterisk, e.g. *23,100 km)", "Cluster Replaced", "Instrument cluster has been replaced. Total mileage cannot be verified unless accompanied by dealer service records."],
+            ["# (Hash symbol)", "Discrepancy / Inconsistency", "Odometer reading is lower than a previously recorded auction or shaken record. Warning of potential rollback."],
+            ["? (Question mark)", "Suspect Mileage", "Odometer display is broken, altered, or unsupported by service history."],
+          ],
+        },
+        callout: {
+          type: "warning",
+          title: "Never Buy Without the Export Certificate",
+          text: "Unscrupulous third-party dealers sometimes withhold original Export Certificates and present only duplicate copies with omitted mileage lines. Neo Trading always provides the original high-security watermark Export Certificate issued by the Japanese government.",
+        },
+      },
+      {
+        heading: "3. Understanding Grade R and Structural Collision History",
+        content: [
+          "Japanese auctions grade accidental history as 'Grade R' or 'Grade RA'. While some buyers immediately dismiss Grade R cars, understanding what the inspector noted can uncover incredible bargains or prevent costly mistakes:",
+          "Cosmetic Repair vs Structural Damage: If an older vehicle had a front fender replaced or a tailgate bolted on after a parking scrape, the auction house must technically assign Grade R even if the chassis was never bent.",
+          "Inspecting Inner Panels: We examine the inspector's inner apron, radiator core support, strut tower, and rear trunk floor pan annotations. If the structural frame (chassis rails) was repaired or pulled on a jig, we advise clients against bidding.",
+        ],
+      },
+      {
+        heading: "4. Independent Pre-Shipment Certifications",
+        content: [
+          "For complete peace of mind, Neo Trading arranges independent third-party physical inspections before any vehicle is loaded onto an export ship:",
+          "JEVIC (Japan Export Vehicle Inspection Center): Conducts electronic odometer verification, roadworthiness, and structural safety testing.",
+          "QISJ (Quality Inspection Services Japan): Mandatory pre-shipment radiation and roadworthiness inspection for East Africa.",
+          "JAAI (Japan Automobile Appraisal Institute): Official mechanical evaluation and valuation certificates.",
+        ],
+      },
+    ],
+  },
 ];
 
 export const getBlogPostBySlug = (slug: string): BlogPost | undefined => {

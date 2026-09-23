@@ -20,9 +20,13 @@ Neo Trading Co., Ltd specializes in direct **auto imports from Japan** for indiv
 - [Auction Sourcing](https://neojapancars.com/auctions): How to buy vehicles directly from live Japanese auctions.
 - [JDM & Auto Import Blog](https://neojapancars.com/blog): In-depth market guides on importing Japanese cars to the US & UK.
   - [US 25-Year Rule Guide](https://neojapancars.com/blog/importing-jdm-cars-to-usa-25-year-rule): NHTSA HS-7 & EPA 3520-1 forms, 2.5% duty, state titling.
+  - [US Kei Truck Import Guide](https://neojapancars.com/blog/importing-japanese-kei-trucks-to-usa): Hijet, Carry, Acty, Chicken Tax tariff & state titling laws.
+  - [JDM Cars Becoming 25-Year US Legal (2024-2026)](https://neojapancars.com/blog/jdm-cars-becoming-25-year-us-legal): R34 GT-R, S15 Silvia, Evo VI, FD RX-7 list.
   - [UK Import Guide](https://neojapancars.com/blog/how-to-import-cars-from-japan-to-uk): IVA test, 10-year rule, HMRC NOVA, DVLA V55/5 registration.
+  - [UK Japanese Campervans Guide](https://neojapancars.com/blog/importing-campervans-toyota-alphard-nissan-elgrand-uk): Alphard vs Elgrand, ULEZ, conversions.
   - [Top 10 JDM Cars to Import](https://neojapancars.com/blog/top-10-jdm-cars-to-import-from-japan): Skyline GT-R, Supra, RX-7, Kei trucks, specs & values.
   - [Japanese Car Auctions Guide](https://neojapancars.com/blog/japanese-car-auctions-guide-usa-uk-buyers): USS & TAA bidding, sheet translations.
+  - [Auction Odometer & Anti-Fraud Guide](https://neojapancars.com/blog/how-to-verify-japanese-car-odometer-auction-sheet): MLIT shaken records, symbols & JEVIC.
 - [Auto Import Guide & Resources](https://neojapancars.com/resources): Comprehensive guides on import regulations, FOB vs CIF pricing, auction sheet grading, and shipping.
 - [Frequently Asked Questions](https://neojapancars.com/faq): Answers to payment methods, shipping durations, country rules, and paperwork.
 - [Vehicle Inquiry & Custom Sourcing](https://neojapancars.com/inquiry): Request a personalized CIF quote to your destination port.

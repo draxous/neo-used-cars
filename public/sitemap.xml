@@ -48,6 +48,26 @@
     <priority>0.85</priority>
   </url>
   <url>
+    <loc>https://neojapancars.com/blog/importing-japanese-kei-trucks-to-usa</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://neojapancars.com/blog/jdm-cars-becoming-25-year-us-legal</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://neojapancars.com/blog/importing-campervans-toyota-alphard-nissan-elgrand-uk</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://neojapancars.com/blog/how-to-verify-japanese-car-odometer-auction-sheet</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://neojapancars.com/faq</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
