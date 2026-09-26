@@ -3,8 +3,13 @@ import App from "./App.tsx";
 import { bootstrap } from "./bootstrap";
 import "./index.css";
 
-// Stock and contact details come from the database; load them first so the
-// first paint is already the real site. bootstrap() never rejects.
-void bootstrap().then(() => {
-  createRoot(document.getElementById("root")!).render(<App />);
-});
+// Mount React immediately using bundled stock and configuration so the
+// initial paint is instantaneous (0ms delay).
+const rootElement = document.getElementById("root");
+if (rootElement) {
+  createRoot(rootElement).render(<App />);
+}
+
+// Background sync from Supabase without delaying initial screen paint.
+void bootstrap();
+

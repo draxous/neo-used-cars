@@ -828,6 +828,16 @@ export const seedCars: Car[] = [
 /* Query helpers — components use these instead of touching the array. */
 /* ------------------------------------------------------------------ */
 
+type InventoryListener = () => void;
+const inventoryListeners = new Set<InventoryListener>();
+
+export const onInventoryChange = (fn: InventoryListener): (() => void) => {
+  inventoryListeners.add(fn);
+  return () => {
+    inventoryListeners.delete(fn);
+  };
+};
+
 /**
  * The live list. A `let` so `setInventory` can swap it: ES module bindings are
  * live, so every importer sees the new array without re-importing.
@@ -837,6 +847,13 @@ export let cars: Car[] = seedCars;
 /** Replaces the inventory — called once at start-up, and after admin edits. */
 export const setInventory = (next: Car[]) => {
   cars = next;
+  inventoryListeners.forEach((fn) => {
+    try {
+      fn();
+    } catch {
+      // ignore listener error
+    }
+  });
 };
 
 /**
