@@ -10,7 +10,7 @@ Our mission is to make direct **auto imports from Japan** simple, transparent, a
 ## 1. How Auto Imports from Japan Work (Step-by-Step)
 
 ### Step 1: Vehicle Selection or Auction Request
-- **In-Stock Vehicles**: Customers browse physical stock at https://neojapancars.com/stock-cars. Vehicles are stored in Japanese port yards (Yokohama, Nagoya, Kobe, Osaka, Hakata, Kawasaki) and ready for fast vessel booking.
+- **In-Stock Vehicles**: Customers browse physical stock at https://neojapancars.com/search. Vehicles are stored in Japanese port yards (Yokohama, Nagoya, Kobe, Osaka, Hakata, Kawasaki) and ready for fast vessel booking.
 - **Auction Sourcing**: If looking for a specific model, trim, color, or condition, buyers submit a sourcing request. We search through ~100,000 vehicles listed each week at USS, TAA, CAA, JU, HAA, and ARAI auctions.
 
 ### Step 2: Auction Sheet Translation & Pre-Bid Inspection

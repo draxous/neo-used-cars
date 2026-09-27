@@ -22,8 +22,8 @@ const NotFound = () => {
           </p>
           <div className="flex flex-wrap gap-3 justify-center">
             <Button asChild className="bg-primary hover:bg-primary/90 gap-2">
-              <Link to="/stock-cars">
-                Browse Stock
+              <Link to="/search">
+                Search Cars
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>

@@ -86,7 +86,7 @@ const StockCars = ({ variant = "all" }: { variant?: StockVariant }) => {
 
   const breadcrumbsList = [
     { name: "Home", item: "https://neojapancars.com/" },
-    { name: "Stock Cars", item: "https://neojapancars.com/stock-cars" },
+    { name: "Search Cars", item: "https://neojapancars.com/search" },
     ...(makeName && makeSlug
       ? [{ name: makeName, item: `https://neojapancars.com/stock-cars/${makeSlug}` }]
       : []),
@@ -144,8 +144,8 @@ const StockCars = ({ variant = "all" }: { variant?: StockVariant }) => {
               Home
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <Link to="/stock-cars" className="hover:text-primary transition-colors">
-              Stock Cars
+            <Link to="/search" className="hover:text-primary transition-colors">
+              Search Cars
             </Link>
             {makeName && (
               <>

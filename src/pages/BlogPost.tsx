@@ -301,8 +301,8 @@ const BlogPostPage = () => {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/stock-cars">
-                Browse Stock Cars
+              <Link to="/search">
+                Search Cars
               </Link>
             </Button>
           </div>

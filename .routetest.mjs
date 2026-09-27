@@ -3,7 +3,9 @@ import { matchRoutes } from "react-router-dom";
 // Mirrors the <Route> table in src/App.tsx
 const routes = [
   { path: "/", id: "Index" },
-  { path: "/stock-cars", id: "StockCars(all)" },
+  { path: "/stock-cars", id: "RedirectSearch" },
+  { path: "/stock", id: "RedirectSearch" },
+  { path: "/cars", id: "RedirectSearch" },
   { path: "/stock-cars/collection/:collectionSlug", id: "StockCars(collection)" },
   { path: "/stock-cars/:makeSlug", id: "StockCars(make)" },
   { path: "/stock-cars/:makeSlug/:modelSlug", id: "StockCars(model)" },
@@ -21,7 +23,9 @@ const routes = [
 
 const cases = [
   ["/", "Index"],
-  ["/stock-cars", "StockCars(all)"],
+  ["/stock-cars", "RedirectSearch"],
+  ["/stock", "RedirectSearch"],
+  ["/cars", "RedirectSearch"],
   ["/stock-cars/toyota", "StockCars(make)"],
   ["/stock-cars/toyota/land-cruiser-prado", "StockCars(model)"],
   ["/stock-cars/toyota/land-cruiser-prado/NEO-1042", "CarDetail"],

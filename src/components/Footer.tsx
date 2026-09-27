@@ -34,7 +34,7 @@ const Footer = () => {
           <div>
             <h4 className="font-display font-semibold mb-4">Auto Imports</h4>
             <ul className="space-y-2 text-sm text-primary-foreground/80">
-              <li><Link to="/stock-cars" className="hover:text-accent transition-colors">Japanese Stock Cars</Link></li>
+              <li><Link to="/search" className="hover:text-accent transition-colors">Search Cars</Link></li>
               <li><Link to="/auctions" className="hover:text-accent transition-colors">Japan Auction Bidding</Link></li>
               <li><Link to="/blog" className="hover:text-accent transition-colors">JDM & Import Blog</Link></li>
               <li><Link to="/resources" className="hover:text-accent transition-colors">Auto Import Guides</Link></li>

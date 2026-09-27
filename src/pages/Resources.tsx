@@ -285,8 +285,8 @@ const Resources = () => {
                 </div>
                 <div className="flex gap-3">
                   <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2">
-                    <Link to="/stock-cars">
-                      Explore Stock List
+                    <Link to="/search">
+                      Search Cars
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>

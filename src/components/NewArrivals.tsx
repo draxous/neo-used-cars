@@ -17,7 +17,7 @@ const NewArrivals = () => {
           <p className="text-muted-foreground mt-1">Fresh stock added daily</p>
         </div>
         <Button asChild variant="ghost" className="text-primary hover:text-primary/90 gap-2">
-          <Link to="/stock-cars">
+          <Link to="/search">
             View All
             <ArrowRight className="h-4 w-4" />
           </Link>

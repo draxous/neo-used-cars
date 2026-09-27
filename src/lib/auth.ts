@@ -102,7 +102,7 @@ const pathNames: Record<string, string> = {
   "/dashboard/home": "your dashboard",
   "/dashboard": "your dashboard",
   "/search": "your search results",
-  "/stock-cars": "our stock list",
+  "/stock-cars": "car search",
   "/inquiry": "your inquiry",
   "/auctions": "auction sourcing",
   "/": "the home page",

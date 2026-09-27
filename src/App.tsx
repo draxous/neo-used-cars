@@ -68,9 +68,10 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
 
-                {/* Stock — the SEO-facing routes.
-                    The static "collection" segment is matched ahead of :makeSlug. */}
-                <Route path="/stock-cars" element={<StockCars variant="all" />} />
+                {/* Stock & Cars redirects to /search */}
+                <Route path="/stock-cars" element={<Navigate to="/search" replace />} />
+                <Route path="/stock" element={<Navigate to="/search" replace />} />
+                <Route path="/cars" element={<Navigate to="/search" replace />} />
                 <Route
                   path="/stock-cars/collection/:collectionSlug"
                   element={<StockCars variant="collection" />}

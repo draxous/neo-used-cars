@@ -53,7 +53,7 @@ const CarDetail = () => {
         "@type": "BreadcrumbList",
         "itemListElement": [
           { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://neojapancars.com/" },
-          { "@type": "ListItem", "position": 2, "name": "Stock Cars", "item": "https://neojapancars.com/stock-cars" },
+          { "@type": "ListItem", "position": 2, "name": "Search Cars", "item": "https://neojapancars.com/search" },
           { "@type": "ListItem", "position": 3, "name": car.make, "item": `https://neojapancars.com/stock-cars/${slugify(car.make)}` },
           { "@type": "ListItem", "position": 4, "name": car.model, "item": `https://neojapancars.com/stock-cars/${slugify(car.make)}/${slugify(car.model)}` },
           { "@type": "ListItem", "position": 5, "name": `${car.year} ${car.make} ${car.model}`, "item": `https://neojapancars.com${carPath(car)}` },
@@ -135,8 +135,8 @@ const CarDetail = () => {
               Home
             </Link>
             <ChevronRight className="h-4 w-4" />
-            <Link to="/stock-cars" className="hover:text-primary transition-colors">
-              Stock Cars
+            <Link to="/search" className="hover:text-primary transition-colors">
+              Search Cars
             </Link>
             <ChevronRight className="h-4 w-4" />
             <Link

@@ -15,22 +15,12 @@ export const navigation: NavItem[] = [
   { name: "Home", href: "/" },
   {
     name: "Buy",
-    href: "/stock-cars",
+    href: "/search",
     submenu: [
       {
         name: "Search Cars",
         href: "/search",
-        description: "Filter our stock by make, model, price, year and more",
-      },
-      {
-        name: "Stock",
-        href: "/stock-cars",
-        description: "Browse our inventory of ready-to-purchase vehicles",
-      },
-      {
-        name: "Auctions",
-        href: "/auctions",
-        description: "Explore live and upcoming Japanese vehicle auctions",
+        description: "Filter our inventory by make, model, price, year and more",
       },
     ],
   },

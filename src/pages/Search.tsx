@@ -232,9 +232,7 @@ const Search = () => {
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
             <Link to="/" className="hover:text-primary transition-colors">Home</Link>
             <ChevronRight className="h-3 w-3" />
-            <Link to="/stock-cars" className="hover:text-primary transition-colors">Buy</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-foreground">Search</span>
+            <span className="text-foreground">Search Cars</span>
           </nav>
           <h1 className="font-display text-3xl lg:text-4xl font-bold text-foreground">
             Search <span className="text-primary">Results</span>
